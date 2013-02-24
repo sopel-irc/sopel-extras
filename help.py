@@ -10,11 +10,18 @@ from collections import deque
 
 helpees = deque()
 
+def configure(config):
+    """
+    To use the helpbot module, you have to set your help channel.
+    """
+    config.interactive_add('helpbot', 'channel', "Enter the channel HelpBot should moderate", '#help')
+
 def addNewHelpee(willie, trigger):
     """Adds somebody who joins the channel to the helpee list."""
     if trigger.admin: return
     helpees.append({'nick': trigger.nick, 'request': None, 'active': False, 'skipped': False})
     willie.msg(trigger.nick, 'welcome to '+str(trigger)+'. Please reply here with your help request, prefixed with \'.request\'. (example: .request I lost my password.)')
+    willie.msg(willie.config.helpbot.channel,'Added '+trigger.nick+' to the waiting list.')
 addNewHelpee.event = 'JOIN'
 addNewHelpee.rule = r'.*'
 
@@ -36,6 +43,7 @@ def request(willie, trigger):
             willie.say('Your help request is now marked active. Your question is:')
             willie.say(helpee['request'])
             willie.say('If you have anything more to add, please use the .request command again.')
+            willie.msg(willie.config.helpbot.channel,trigger.nick+' just added a question to their help request.')
         else:
             helpee['request'] += ' '+trigger.groups()[1].encode('UTF-8')
             willie.say('You already had a question, I\'ve added this to what you\'ve asked previously. Your new question is:')
@@ -57,11 +65,13 @@ def next(willie, trigger):
             willie.msg(helpee['nick'], 'An operator just tried to help you but you didn\'t tell me what you need help with. I\'m putting you back at the end of the queue, please use the .request command.')
         else:
             willie.msg(helpee['nick'], 'An operator just tried to help you again. Since you seem to be inactive I\'m going to remove you from the channel. Please use the .request command after you join again.')
-            willie.write(['KICK', '#help', helpee['nick'], 'Didn\'t set a help request before being assigned an operator, twice.']) #TODO: Remove hardcoded channel
+            willie.write(['KICK', willie.config.helpbot.channel, helpee['nick'], 'Didn\'t set a help request before being assigned an operator, twice.'])
+            willie.reply('attempted to kick '+helpee['nick']+', due to being called twice without request.')
     else:
         willie.reply('assigned '+helpee['nick']+' to you. Their question: '+helpee['request'])
-        willie.write(['MODE', '#help', '+v', helpee['nick']]) #TODO: Remove hardcoded channel
+        willie.write(['MODE', willie.config.helpbot.channel, '+v', helpee['nick']])
 next.commands = ['next']
 
 if __name__ == '__main__':
     print __doc__.strip()
+
