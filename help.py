@@ -18,7 +18,8 @@ def configure(config):
 
 def addNewHelpee(willie, trigger):
     """Adds somebody who joins the channel to the helpee list."""
-    if trigger.admin: return
+    if trigger.admin or trigger.nick == willie.nick or trigger.sender != willie.config.helpbot.channel:
+        return
     helpees.append({'nick': trigger.nick, 'request': None, 'active': False, 'skipped': False})
     willie.msg(trigger.nick, 'welcome to '+str(trigger)+'. Please reply here with your help request, prefixed with \'.request\'. (example: .request I lost my password.)')
     willie.msg(willie.config.helpbot.channel,'Added '+trigger.nick+' to the waiting list.')
