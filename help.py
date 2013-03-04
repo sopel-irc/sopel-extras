@@ -13,6 +13,10 @@ helpees = deque()
 def configure(config):
     """
     To use the helpbot module, you have to set your help channel.
+
+    | [helpbot] | example | purpose |
+    | -------- | ------- | ------- |
+    | channel | #help | Enter the channel HelpBot should moderate |
     """
     config.interactive_add('helpbot', 'channel', "Enter the channel HelpBot should moderate", '#help')
 
@@ -21,8 +25,12 @@ def addNewHelpee(willie, trigger):
     if trigger.admin or trigger.nick == willie.nick or trigger.sender != willie.config.helpbot.channel:
         return
     helpees.append({'nick': trigger.nick, 'request': None, 'active': False, 'skipped': False})
+    try:
+        willie.msg(willie.config.helpbot.channel,'Added '+trigger.nick+' to the waiting list.')
+    except AttributeError:
+        willie.debug('Help','You\'re running a module requiring configuration, without having configured it.','warning')
+        return
     willie.msg(trigger.nick, 'welcome to '+str(trigger)+'. Please reply here with your help request, prefixed with \'.request\'. (example: .request I lost my password.)')
-    willie.msg(willie.config.helpbot.channel,'Added '+trigger.nick+' to the waiting list.')
 addNewHelpee.event = 'JOIN'
 addNewHelpee.rule = r'.*'
 
