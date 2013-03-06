@@ -15,6 +15,14 @@ import re
 
 seed()
 
+def setup(willie):
+    if not willie.config.has_section('dicelog'):
+        willie.config.add_section('dicelog')
+    if not willie.config.has_option('dicelog', 'logdir'):
+        willie.config.parser.set('dicelog', 'logdir', '.')
+    if not willie.config.has_option('dicelog', 'campaigns'):
+        willie.config.parser.set('dicelog', 'campaigns', '')
+
 def configure(config):
     """ Since this module conflicts with the default dice module, this module
         will ask the user to blacklist one or the other. If dicelog is kept, it
@@ -26,7 +34,7 @@ def configure(config):
     print "The %s module is being added to the module blacklist." % module
     if config.has_option('core', 'exclude'):
         if module not in config.core.exclude:
-            config.core.exclude = ','.join([config.core.exclude,'module'])
+            config.core.exclude = ','.join([config.core.exclude,' module'])
     else:
         if not config.has_option('core', 'enable'):
             config.parser.set('core', 'exclude', module)
@@ -141,7 +149,7 @@ def rollDice(diceroll):
 def addCampaign(willie, trigger):
     if not trigger.admin: return False
     campaign = trigger.group(2).lower().strip()
-    if not willie.config.has_option('dicelog', 'campaigns'):
+    if not willie.config.dicelog.campaigns == '':
         willie.config.parser.set('dicelog', 'campaigns', campaign)
     elif campaign in willie.config.dicelog.campaigns:
         willie.say("Campaign \"%s\" already exists!" % campaign)
@@ -155,7 +163,7 @@ addCampaign.priority = 'medium'
 
 def delCampaign(willie, trigger):
     if not trigger.admin: return False
-    if willie.config.has_option('dicelog', 'campaigns'):
+    if not willie.config.dicelog.campaigns == '':
         willie.config.dicelog.campaigns = ','.join([campaign for campaign in willie.config.dicelog.campaigns.split(',')
                     if not campaign == willie.config.dicelog.campaigns])
     willie.say("Campagin \"%s\" has been removed!" % campaign)
