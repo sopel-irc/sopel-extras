@@ -61,7 +61,8 @@ def dicelog(willie, trigger):
     else:
         campaign = ''
         rollStr = trigger.group(2).strip()
-
+    campaign = campaign.strip()
+    rollStr = rollStr.strip()
     # prepare string for mathing
     arr = rollStr.lower().replace(' ','')
     arr = arr.replace('-', ' - ').replace('+', ' + ').replace('/', ' / ')
@@ -118,17 +119,15 @@ def dicelog(willie, trigger):
         willie.reply('For pure math, you can use .c '
                      + rollStr + ' = ' + result)
     else:
-        response = 'You roll' + rollStr + ': ' + full_string + ' = ' + result
+        response = 'You roll ' + rollStr + ': ' + full_string + ' = ' + result
         willie.reply(response)
         campaign = campaign.strip().lower()
         if campaign:
-            print campaign, "campaign found!", willie.config.dicelog.campaigns
             if campaign in willie.config.dicelog.campaigns.split(','):
-                print willie.config.dicelog.logdir
                 log = open(os.path.join(willie.config.dicelog.logdir, campaign + '.log'), 'a')
-                log.write("At <%s> %s rolled %s" % (time.ctime(), trigger.nick, response[8:]))
+                log.write("At <%s> %s rolled %s\n" % (time.ctime(), trigger.nick, response[9:]))
                 log.close()
-            else: willie.reply("didn't log because " + campaign + " is not listed as a campaign. sorry!")
+            else: willie.reply("Didn't log because " + campaign + " is not listed as a campaign. sorry!")
 dicelog.commands = ['d', 'dice', 'roll']
 dicelog.priority = 'medium'
 
@@ -146,30 +145,36 @@ def rollDice(diceroll):
                        randint(1, size))[randint(0, 9)])
     return sorted(result)  # returns a set of integers.
 
-def addCampaign(willie, trigger):
-    if not trigger.admin: return False
-    campaign = trigger.group(2).lower().strip()
-    if not willie.config.dicelog.campaigns == '':
-        willie.config.parser.set('dicelog', 'campaigns', campaign)
-    elif campaign in willie.config.dicelog.campaigns:
-        willie.say("Campaign \"%s\" already exists!" % campaign)
+def campaign(willie, trigger):
+    if trigger.group(2):
+        command, campaign = trigger.group(2).partition(' ')[::2]
     else:
-        willie.config.dicelog.campaigns = ','.join([willie.config.dicelog.campaigns,
-                    trigger.group(2).lower().strip()])
-        willie.say("Campaign \"%s\" has been added!" % campaign)
+        return willie.say('usage: campaign (list|add|del) <args>')
+    if not command in ['list', 'add', 'del']:
+        return willie.say('usage: campaign (list|add|del) <args>')
+    if not command == 'list':
+        if not trigger.admin:
+            return
+        elif not campaign:
+            return willie.say('usage: campaign (list|add|del) <args>')
+    campaign = campaign.lower().strip()
+    campaigns = willie.config.dicelog.campaigns.split(', ')
+    if campaign in campaigns:
+        if command == 'del':
+            campaigns.remove(campaign)
+            willie.say("Campagin \"%s\" has been removed!" % campaign)
+        else: # command == 'add'
+            willie.say("Campaign \"%s\" already exists!" % campaign)
+    else:
+        if command == 'del':
+            willie.say("Campagin \"%s\" doesn't exist!" % campaign)
+        else: # command == 'add'
+            campaigns.append(campaign)
+    if not command == 'list':
+        willie.config.dicelog.campaigns = ', '.join(campaigns)
     willie.say("The current list is: " + willie.config.dicelog.campaigns)
-addCampaign.commands = ['addCampaign']
-addCampaign.priority = 'medium'
-
-def delCampaign(willie, trigger):
-    if not trigger.admin: return False
-    if not willie.config.dicelog.campaigns == '':
-        willie.config.dicelog.campaigns = ','.join([campaign for campaign in willie.config.dicelog.campaigns.split(',')
-                    if not campaign == willie.config.dicelog.campaigns])
-    willie.say("Campagin \"%s\" has been removed!" % campaign)
-    willie.say("The current list is: " + willie.config.dicelog.campaigns)
-delCampaign.commands = ['delCampaign']
-delCampaign.priority = 'medium'
+campaign.commands = ['campaign', 'campaigns']
+campaign.priority = 'medium'
 
 if __name__ == '__main__':
     print __doc__.strip()
