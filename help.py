@@ -34,6 +34,25 @@ def addNewHelpee(willie, trigger):
 addNewHelpee.event = 'JOIN'
 addNewHelpee.rule = r'.*'
 
+def helpeeQuit(willie, trigger):
+    """Removes somebody who leaves the channel from the helpee list (quit wrapper)."""
+    helpeePart(willie, trigger)
+helpeeQuit.event = 'QUIT'
+helpeeQuit.rule = r'.*'
+
+def helpeePart(willie, trigger):
+    """Removes somebody who leaves the channel from the helpee list."""
+    for i in range(len(helpees)):
+        if trigger.nick == helpees[i]['nick']:
+            try:
+                helpees.remove(helpees[i])
+                return willie.msg(willie.config.helpbot.channel, trigger.nick+' removed from waiting list.')
+            except ValueError as e:
+                willie.debug('Help', str(e), 'warning')
+                return willie.msg(willie.config.helpbot.channel, 'Error removing %s from helpees list.' % (trigger.nick,))
+helpeePart.event = 'PART'
+helpeePart.rule = r'.*'
+
 def request(willie, trigger):
     """Allows a helpee to add a message to their help request, and activates said request."""
     if trigger.sender.startswith("#"): return
