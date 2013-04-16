@@ -5,7 +5,7 @@ Licensed under the Eiffel Forum License 2.
 """
 
 def multimessage(willie, trigger):
-	"""
+    """
     .mm <users> <message>  - Sends the same message to multiple users
     """
     if not trigger.isop:
