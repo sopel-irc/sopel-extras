@@ -26,11 +26,10 @@ def addNewHelpee(willie, trigger):
         return
     helpees.append({'nick': trigger.nick, 'request': None, 'active': False, 'skipped': False})
     try:
-        willie.msg(willie.config.helpbot.channel,'Added '+trigger.nick+' to the waiting list.')
+        willie.reply('Welcome to '+str(trigger)+'. Please PM '+willie.nick+' with your help request, prefixed with \'.request\'. (example: /msg '+willie.nick+' .request I lost my password.)')
     except AttributeError:
         willie.debug('Help','You\'re running a module requiring configuration, without having configured it.','warning')
         return
-    willie.msg(trigger.nick, 'welcome to '+str(trigger)+'. Please reply here with your help request, prefixed with \'.request\'. (example: .request I lost my password.)')
 addNewHelpee.event = 'JOIN'
 addNewHelpee.rule = r'.*'
 
@@ -70,7 +69,7 @@ def request(willie, trigger):
             helpee['request'] = trigger.groups()[1].encode('UTF-8')
             willie.say('Your help request is now marked active. Your question is:')
             willie.say(helpee['request'])
-            willie.say('If you have anything more to add, please use the .request command again.')
+            willie.say('If you have anything more to add, please use the .request command again. Please note that when you leave the channel your request will be deleted.')
             willie.msg(willie.config.helpbot.channel,trigger.nick+' just added a question to their help request.')
         else:
             helpee['request'] += ' '+trigger.groups()[1].encode('UTF-8')
