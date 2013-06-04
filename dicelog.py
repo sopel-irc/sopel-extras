@@ -7,6 +7,7 @@ Licensed under the Eiffel Forum License 2.
 http://willie.dftba.net/
 """
 
+from willie.module import commands, priority
 from random import randint, seed
 import time
 import os.path
@@ -15,13 +16,15 @@ import re
 
 seed()
 
-def setup(willie):
-    if not willie.config.has_section('dicelog'):
-        willie.config.add_section('dicelog')
-    if not willie.config.has_option('dicelog', 'logdir'):
-        willie.config.parser.set('dicelog', 'logdir', '.')
-    if not willie.config.has_option('dicelog', 'campaigns'):
-        willie.config.parser.set('dicelog', 'campaigns', '')
+
+def setup(bot):
+    if not bot.config.has_section('dicelog'):
+        bot.config.add_section('dicelog')
+    if not bot.config.has_option('dicelog', 'logdir'):
+        bot.config.parser.set('dicelog', 'logdir', '.')
+    if not bot.config.has_option('dicelog', 'campaigns'):
+        bot.config.parser.set('dicelog', 'campaigns', '')
+
 
 def configure(config):
     """ Since this module conflicts with the default dice module, this module
@@ -34,11 +37,12 @@ def configure(config):
     print "The %s module is being added to the module blacklist." % module
     if config.has_option('core', 'exclude'):
         if module not in config.core.exclude:
-            config.core.exclude = ','.join([config.core.exclude,' module'])
+            config.core.exclude = ','.join([config.core.exclude, ' module'])
     else:
         if not config.has_option('core', 'enable'):
             config.parser.set('core', 'exclude', module)
-    if module == "dicelog": return
+    if module == "dicelog":
+        return
     config.interactive_add('dicelog', 'logdir',
                 "where should the log files be stored on the harddrive?")
     config.add_list('dicelog', 'campaigns', "\
@@ -47,13 +51,16 @@ provided to edit this list on the fly. Please be aware that this identifier is\
 what will be used to log rolls and also name the files.", "Campaign Identifier:")
     config.dicelog.campaigns = config.dicelog.campaigns.lower()
 
-def dicelog(willie, trigger):
+
+@commands('d', 'dice', 'roll')
+@priority('medium')
+def dicelog(bot, trigger):
     """
     .dice [logfile] <formula>  - Rolls dice using the XdY format, also does
     basic math and drop lowest (XdYvZ). Saves result in logfile if given.
     """
     if not trigger.group(2):
-        return willie.reply('You have to specify the dice you wanna roll.')
+        return bot.reply('You have to specify the dice you wanna roll.')
 
     # extract campaign
     if trigger.group(2).startswith('['):
@@ -64,7 +71,7 @@ def dicelog(willie, trigger):
     campaign = campaign.strip()
     rollStr = rollStr.strip()
     # prepare string for mathing
-    arr = rollStr.lower().replace(' ','')
+    arr = rollStr.lower().replace(' ', '')
     arr = arr.replace('-', ' - ').replace('+', ' + ').replace('/', ' / ')
     arr = arr.replace('*', ' * ').replace('(', ' ( ').replace(')', ' ) ')
     arr = arr.replace('^', ' ^ ').replace('()', '').split(' ')
@@ -80,7 +87,7 @@ def dicelog(willie, trigger):
                 dropLowest = int(result.group(3)[1:])
                 # or makes implied 1dx to be evaluated in case of dx being typed
                 if (dropLowest >= int(result.group(2).split('d')[0] or 1)):
-                    willie.reply('You\'re trying to drop too many dice.')
+                    bot.reply('You\'re trying to drop too many dice.')
                     return
             else:
                 dropLowest = 0
@@ -114,22 +121,21 @@ def dicelog(willie, trigger):
     result = calculate(''.join(
                 full_string.replace('[', '#').replace(']', '#').split('#')[::2]))
     if result == 'Sorry, no result.':
-        willie.reply('Calculation failed, did you try something weird?')
+        bot.reply('Calculation failed, did you try something weird?')
     elif(no_dice):
-        willie.reply('For pure math, you can use .c '
+        bot.reply('For pure math, you can use .c '
                      + rollStr + ' = ' + result)
     else:
         response = 'You roll ' + rollStr + ': ' + full_string + ' = ' + result
-        willie.reply(response)
+        bot.reply(response)
         campaign = campaign.strip().lower()
         if campaign:
-            if campaign in willie.config.dicelog.campaigns.split(','):
-                log = open(os.path.join(willie.config.dicelog.logdir, campaign + '.log'), 'a')
+            if campaign in bot.config.dicelog.campaigns.split(','):
+                log = open(os.path.join(bot.config.dicelog.logdir, campaign + '.log'), 'a')
                 log.write("At <%s> %s rolled %s\n" % (time.ctime(), trigger.nick, response[9:]))
                 log.close()
-            else: willie.reply("Didn't log because " + campaign + " is not listed as a campaign. sorry!")
-dicelog.commands = ['d', 'dice', 'roll']
-dicelog.priority = 'medium'
+            else:
+                bot.reply("Didn't log because " + campaign + " is not listed as a campaign. sorry!")
 
 
 def rollDice(diceroll):
@@ -145,36 +151,37 @@ def rollDice(diceroll):
                        randint(1, size))[randint(0, 9)])
     return sorted(result)  # returns a set of integers.
 
-def campaign(willie, trigger):
+
+@commands('campaign', 'campaigns')
+@priority('medium')
+def campaign(bot, trigger):
     if trigger.group(2):
         command, campaign = trigger.group(2).partition(' ')[::2]
     else:
-        return willie.say('usage: campaign (list|add|del) <args>')
+        return bot.say('usage: campaign (list|add|del) <args>')
     if not command in ['list', 'add', 'del']:
-        return willie.say('usage: campaign (list|add|del) <args>')
+        return bot.say('usage: campaign (list|add|del) <args>')
     if not command == 'list':
         if not trigger.admin:
             return
         elif not campaign:
-            return willie.say('usage: campaign (list|add|del) <args>')
+            return bot.say('usage: campaign (list|add|del) <args>')
     campaign = campaign.lower().strip()
-    campaigns = willie.config.dicelog.campaigns.split(', ')
+    campaigns = bot.config.dicelog.campaigns.split(', ')
     if campaign in campaigns:
         if command == 'del':
             campaigns.remove(campaign)
-            willie.say("Campagin \"%s\" has been removed!" % campaign)
-        else: # command == 'add'
-            willie.say("Campaign \"%s\" already exists!" % campaign)
+            bot.say("Campagin \"%s\" has been removed!" % campaign)
+        else:  # command == 'add'
+            bot.say("Campaign \"%s\" already exists!" % campaign)
     else:
         if command == 'del':
-            willie.say("Campagin \"%s\" doesn't exist!" % campaign)
-        else: # command == 'add'
+            bot.say("Campagin \"%s\" doesn't exist!" % campaign)
+        else:  # command == 'add'
             campaigns.append(campaign)
     if not command == 'list':
-        willie.config.dicelog.campaigns = ', '.join(campaigns)
-    willie.say("The current list is: " + willie.config.dicelog.campaigns)
-campaign.commands = ['campaign', 'campaigns']
-campaign.priority = 'medium'
+        bot.config.dicelog.campaigns = ', '.join(campaigns)
+    bot.say("The current list is: " + bot.config.dicelog.campaigns)
 
 if __name__ == '__main__':
     print __doc__.strip()
