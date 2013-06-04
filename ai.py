@@ -5,6 +5,7 @@ Licensed under the Eiffel Forum License 2.
 
 http://willie.dftba.net
 """
+from willie.module import rule, priority, rate
 import random
 import time
 
@@ -12,123 +13,120 @@ random.seed()
 limit = 3
 
 
-def goodbye(willie, trigger):
+@rule('(?i)$nickname\:\s+(bye|goodbye|seeya|cya|ttyl|g2g|gnight|goodnight)')
+@rate(30)
+def goodbye(bot, trigger):
     byemsg = random.choice(('Bye', 'Goodbye', 'Seeya', 'Auf Wiedersehen', 'Au revoir', 'Ttyl'))
     punctuation = random.choice(('!', ' '))
-    willie.say(byemsg + ' ' + trigger.nick + punctuation)
-goodbye.rule = r'(?i)$nickname\:\s+(bye|goodbye|seeya|cya|ttyl|g2g|gnight|goodnight)'
-goodbye.thread = False
-goodbye.rate = 30
+    bot.say(byemsg + ' ' + trigger.nick + punctuation)
 
 
-def ty(willie, trigger):
+@rule('(?i).*(thank).*(you).*(willie|$nickname).*$')
+@rate(30)
+@priority('high')
+def ty(bot, trigger):
     human = random.uniform(0, 9)
     time.sleep(human)
     mystr = trigger.group()
     mystr = str(mystr)
     if (mystr.find(" no ") == -1) and (mystr.find("no ") == -1) and (mystr.find(" no") == -1):
-        willie.reply("You're welcome.")
-ty.rule = '(?i).*(thank).*(you).*(willie|$nickname).*$'
-ty.priority = 'high'
-ty.rate = 30
+        bot.reply("You're welcome.")
 
 
-def ty2(willie, trigger):
-    ty(willie, trigger)
-ty2.rule = '(?i)$nickname\:\s+(thank).*(you).*'
-ty2.rate = 30
+@rule('(?i)$nickname\:\s+(thank).*(you).*')
+@rate(30)
+def ty2(bot, trigger):
+    ty(bot, trigger)
 
 
-def ty4(willie, trigger):
-    ty(willie, trigger)
-ty4.rule = '(?i).*(thanks).*(willie|$nickname).*'
-ty4.rate = 40
+@rule('(?i).*(thanks).*(willie|$nickname).*')
+@rate(40)
+def ty4(bot, trigger):
+    ty(bot, trigger)
 
 
-def yesno(willie, trigger):
+@rule('(willie|$nickname)\:\s+(yes|no)$')
+@rate(15)
+def yesno(bot, trigger):
     rand = random.uniform(0, 5)
     text = trigger.group()
     text = text.split(":")
     text = text[1].split()
     time.sleep(rand)
     if text[0] == 'yes':
-        willie.reply("no")
+        bot.reply("no")
     elif text[0] == 'no':
-        willie.reply("yes")
-yesno.rule = '(willie|$nickname)\:\s+(yes|no)$'
-yesno.rate = 15
+        bot.reply("yes")
 
 
-def ping_reply(willie, trigger):
+@rule('(?i)($nickname|willie)\:\s+(ping)\s*')
+@rate(30)
+def ping_reply(bot, trigger):
     text = trigger.group().split(":")
     text = text[1].split()
     if text[0] == 'PING' or text[0] == 'ping':
-        willie.reply("PONG")
-ping_reply.rule = '(?i)($nickname|willie)\:\s+(ping)\s*'
-ping_reply.rate = 30
+        bot.reply("PONG")
 
 
-def love(willie, trigger):
-    willie.reply("I love you too.")
-love.rule = '(?i)i.*love.*(willie|$nickname).*'
-love.rate = 30
+@rule('(?i)i.*love.*(willie|$nickname).*')
+@rate(30)
+def love(bot, trigger):
+    bot.reply("I love you too.")
 
 
-def love2(willie, trigger):
-    willie.reply("I love you too.")
-love2.rule = '(?i)(willie|$nickname)\:\si.*love.*'
-love2.rate = 30
+@rule('(?i)(willie|$nickname)\:\si.*love.*')
+@rate(30)
+def love2(bot, trigger):
+    bot.reply("I love you too.")
 
 
-def love3(willie, trigger):
-    willie.reply("I love you too.")
-love3.rule = '(?i)(willie|$nickname)\,\si.*love.*'
-love3.rate = 30
+@rule('(?i)(willie|$nickname)\,\si.*love.*')
+@rate(30)
+def love3(bot, trigger):
+    bot.reply("I love you too.")
 
 
-def f_lol(willie, trigger):
+@rule('(haha!?|lol!?)$')
+@priority('high')
+def f_lol(bot, trigger):
     randnum = random.random()
     if 0 < randnum < limit:
         respond = ['haha', 'lol', 'rofl']
         randtime = random.uniform(0, 9)
         time.sleep(randtime)
-        willie.say(random.choice(respond))
-f_lol.rule = '(haha!?|lol!?)$'
-f_lol.priority = 'high'
+        bot.say(random.choice(respond))
 
 
-def f_bye(willie, trigger):
+@rule('(g2g!?|bye!?)$')
+@priority('high')
+def f_bye(bot, trigger):
     respond = ['bye!', 'bye', 'see ya', 'see ya!']
-    willie.say(random.choice(respond))
-f_bye.rule = '(g2g!?|bye!?)$'
-f_bye.priority = 'high'
+    bot.say(random.choice(respond))
 
 
-def f_heh(willie, trigger):
+@rule('(heh!?)$')
+@priority('high')
+def f_heh(bot, trigger):
     randnum = random.random()
     if 0 < randnum < limit:
         respond = ['hm']
         randtime = random.uniform(0, 7)
         time.sleep(randtime)
-        willie.say(random.choice(respond))
-f_heh.rule = '(heh!?)$'
-f_heh.priority = 'high'
+        bot.say(random.choice(respond))
 
 
-def f_really(willie, trigger):
+@rule('(?i)$nickname\:\s+(really!?)')
+@priority('high')
+def f_really(bot, trigger):
     randtime = random.uniform(10, 45)
     time.sleep(randtime)
-    willie.say(str(trigger.nick) + ": " + "Yes, really.")
-f_really.rule = r'(?i)$nickname\:\s+(really!?)'
-f_really.priority = 'high'
+    bot.say(str(trigger.nick) + ": " + "Yes, really.")
 
 
-def wb(willie, trigger):
-    willie.reply("Thank you!")
-wb.rule = '^(wb|welcome\sback).*$nickname\s'
+@rule('^(wb|welcome\sback).*$nickname\s')
+def wb(bot, trigger):
+    bot.reply("Thank you!")
 
-if __name__ == '__main__':
-    print __doc__.strip()
 
 if __name__ == '__main__':
     print __doc__.strip()

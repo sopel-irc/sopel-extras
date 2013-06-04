@@ -9,7 +9,7 @@ from willie.module import command, example
 
 @commands('mm', 'multimessage')
 @example('.mm nick1,nick2,nick3 my amazing message')
-def multimessage(willie, trigger):
+def multimessage(bot, trigger):
     """
     .mm <users> <message>  - Sends the same message to multiple users
     """
@@ -18,5 +18,5 @@ def multimessage(willie, trigger):
     parts = trigger.group(2).split(' ', 1)
     nicks = parts[0].split(',')
     for nick in nicks:
-        willie.msg(nick, parts[1])
-    willie.reply('All messages sent!')
+        bot.msg(nick, parts[1])
+    bot.reply('All messages sent!')
