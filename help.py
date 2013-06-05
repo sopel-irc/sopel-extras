@@ -19,7 +19,7 @@ def configure(config):
     | channel | #help | Enter the channel HelpBot should moderate |
     """
     config.interactive_add('helpbot', 'channel', "Enter the channel HelpBot should moderate", '#help')
-    
+
 @event('JOIN')
 @rule(r'.*')
 def addNewHelpee(bot, trigger):
@@ -28,19 +28,19 @@ def addNewHelpee(bot, trigger):
         return
     if trigger.isop:
         willie.say('An operator has joined the help channel: ' + trigger.nick)
-        return    
+        return
     helpees.append({'nick': trigger.nick, 'request': None, 'active': False, 'skipped': False})
     try:
         bot.reply('Welcome to '+str(trigger)+'. Please PM '+bot.nick+' with your help request, prefixed with \'.request\' (Example: /msg '+bot.nick+' .request I lost my password.) Don\'t include any private information with your question (passwords etc), as the question will be posted in this channel')
     except AttributeError:
         bot.debug('Help','You\'re running a module requiring configuration, without having configured it.','warning')
         return
-    
+
 @event('QUIT')
 @rule(r'.*')
 def helpeeQuit(bot, trigger):
     if trigger.sender != bot.config.helpbot.channel:
-        return    
+        return
     """Removes somebody who leaves the channel from the helpee list (quit wrapper)."""
     helpeePart(bot, trigger)
 
@@ -49,7 +49,7 @@ def helpeeQuit(bot, trigger):
 def helpeePart(bot, trigger):
     """Removes somebody who leaves the channel from the helpee list."""
     if trigger.sender != bot.config.helpbot.channel:
-        return    
+        return
     for i in range(len(helpees)):
         if trigger.nick == helpees[i]['nick']:
             try:
@@ -58,7 +58,7 @@ def helpeePart(bot, trigger):
             except ValueError as e:
                 bot.debug('Help', str(e), 'warning')
                 return bot.msg(bot.config.helpbot.channel, 'Error removing %s from helpees list.' % (trigger.nick,))
-                
+
 @command('request')
 def request(bot, trigger):
     """Allows a helpee to add a message to their help request, and activates said request."""
@@ -83,8 +83,8 @@ def request(bot, trigger):
             helpee['request'] += ' '+trigger.groups()[1].encode('UTF-8')
             bot.say('You already had a question, I\'ve added this to what you\'ve asked previously. Your new question is:')
             bot.say(helpee['request'])
-            
-@command('next')           
+
+@command('next')
 def next(bot, trigger):
     """Allows a channel operator to get the next person in the waiting list, if said person didn't activate his or her help request, it reminds them and puts them at the end of the queue."""
     if not trigger.isop: return bot.reply('You\'re not a channel operator.')
