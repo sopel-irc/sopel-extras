@@ -9,6 +9,7 @@ http://willie.dftba.net
 import re
 import urllib
 import willie.web as web
+from willie.module import command, example
 
 definitions = 'https://github.com/nslater/oblique/wiki'
 
