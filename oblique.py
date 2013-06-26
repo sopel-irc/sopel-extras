@@ -9,7 +9,7 @@ http://willie.dftba.net
 import re
 import urllib
 import willie.web as web
-from willie.module import command, example
+from willie.module import commands, example
 
 definitions = 'https://github.com/nslater/oblique/wiki'
 
@@ -64,7 +64,7 @@ def refresh(bot):
     return len(o.services), set(o.services) - set(old)
 
 
-@command('o')
+@commands('o')
 @example('.o servicename arg1 arg2 arg3')
 def o(bot, trigger):
     """Call a webservice."""
@@ -111,7 +111,7 @@ def o(bot, trigger):
     service(bot, trigger, command, args)
 
 
-@command('snippet')
+@commands('snippet')
 def snippet(bot, trigger):
     if not o.services:
         refresh(bot)

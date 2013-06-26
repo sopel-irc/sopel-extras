@@ -5,7 +5,7 @@ Licensed under the Eiffel Forum License 2.
 
 http://willie.dftba.net/
 """
-from willie.module import rule, event, command
+from willie.module import rule, event, commands
 from collections import deque
 
 helpees = deque()
@@ -59,7 +59,7 @@ def helpeePart(bot, trigger):
                 bot.debug('Help', str(e), 'warning')
                 return bot.msg(bot.config.helpbot.channel, 'Error removing %s from helpees list.' % (trigger.nick,))
 
-@command('request')
+@commands('request')
 def request(bot, trigger):
     """Allows a helpee to add a message to their help request, and activates said request."""
     if trigger.sender.startswith("#"): return
@@ -84,7 +84,7 @@ def request(bot, trigger):
             bot.say('You already had a question, I\'ve added this to what you\'ve asked previously. Your new question is:')
             bot.say(helpee['request'])
 
-@command('next')
+@commands('next')
 def next(bot, trigger):
     """Allows a channel operator to get the next person in the waiting list, if said person didn't activate his or her help request, it reminds them and puts them at the end of the queue."""
     if not trigger.isop: return bot.reply('You\'re not a channel operator.')
