@@ -39,8 +39,6 @@ def addNewHelpee(bot, trigger):
 @event('QUIT')
 @rule(r'.*')
 def helpeeQuit(bot, trigger):
-    if trigger.sender != bot.config.helpbot.channel:
-        return
     """Removes somebody who leaves the channel from the helpee list (quit wrapper)."""
     helpeePart(bot, trigger)
 
