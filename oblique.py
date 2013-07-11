@@ -109,7 +109,8 @@ def o(bot, trigger):
             elif (command in commands) and (manifest[0] == '!'):
                 return bot.reply('Sorry, %s is blacklisted' % command)
     service(bot, trigger, command, args)
-
+o.services = {}
+o.serviceURI = None
 
 @commands('snippet')
 def snippet(bot, trigger):
