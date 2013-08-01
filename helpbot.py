@@ -39,15 +39,20 @@ def addNewHelpee(bot, trigger):
 @event('QUIT')
 @rule(r'.*')
 def helpeeQuit(bot, trigger):
-    """Removes somebody who leaves the channel from the helpee list (quit wrapper)."""
-    helpeePart(bot, trigger)
+    """Dispatch for removing somebody from the helpee list on-quit."""
+    removeHelpee(bot, trigger)
 
 @event('PART')
 @rule(r'.*')
 def helpeePart(bot, trigger):
-    """Removes somebody who leaves the channel from the helpee list."""
+    """Dispatch for removing somebode from the helpee list when they leave the channel."""
     if trigger.sender != bot.config.helpbot.channel:
         return
+    else:
+        removeHelpee(bot, trigger)
+
+def removeHelpee(bot, trigger):
+    """Removes somebody from the helpee list."""
     for i in range(len(helpees)):
         if trigger.nick == helpees[i]['nick']:
             try:
