@@ -124,7 +124,7 @@ class Inventory():
         item = self.current_items[randint(0, len(self.current_items) - 1)]
         return item
 
-    def populate(self):
+    def populate(self, willie):
         ''' Clears the inventory and fill it with random items '''
         self.current_items = deque([])
         while (len(self.current_items) < int(willie.config.bucket.inv_size)):
@@ -447,7 +447,7 @@ def inv_populate(willie, trigger):
     bucket_runtime_data.inhibit_reply = trigger
     inventory = bucket_runtime_data.inventory
     willie.action('drops all his inventory and picks up random things instead')
-    inventory.populate()
+    inventory.populate(willie)
 inv_populate.rule = ('$nick', 'you need new things(.*|)')
 inv_populate.priority = 'medium'
 
@@ -705,3 +705,4 @@ def parse_factoid(result):
 
 if __name__ == '__main__':
     print __doc__.strip()
+
