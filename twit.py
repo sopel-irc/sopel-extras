@@ -10,6 +10,8 @@ import tweepy
 import time
 import re
 from willie.config import ConfigurationError
+from willie import tools
+from willie.module import rule
 
 def configure(config):
     """
@@ -39,33 +41,48 @@ def setup(willie):
     except:
         raise ConfigurationError('Could not authenticate with Twitter. Are the'
                                  ' API keys configured properly?')
+    regex = re.compile('twitter.com\/(\S*)\/status\/([\d]+)')
+    if not willie.memory.contains('url_callbacks'):
+        willie.memory['url_callbacks'] = tools.WillieMemory()
+    willie.memory['url_callbacks'][regex] = gettweet
 
 
 def format_thousands(integer):
     """Returns string of integer, with thousands separated by ','"""
     return re.sub(r'(\d{3})(?=\d)', r'\1,', str(integer)[::-1])[::-1]
 
-def gettweet(willie, trigger):
-        """Show the last tweet by the given user"""
-        #try:
+def tweet_url(status):
+    """Returns a URL to Twitter for the given status object"""
+    return 'https://twitter.com/' + status.user.screen_name + '/status/' + status.id_str
+
+@rule('.*twitter.com\/(\S*)\/status\/([\d]+).*')
+def gettweet(willie, trigger, found_match=None):
+    """Show the last tweet by the given user"""
+    try:
         auth = tweepy.OAuthHandler(willie.config.twitter.consumer_key, willie.config.twitter.consumer_secret)
         auth.set_access_token(willie.config.twitter.access_token, willie.config.twitter.access_token_secret)
         api = tweepy.API(auth)
 
-        twituser = trigger.group(2)
-        twituser = str(twituser)
-
-        statuses = api.user_timeline(twituser)
-        recent = [s.text for s in statuses][0]
-        # #willie.say("<" + twituser + "> " + unicode(recent))
-        if twituser[0] != '@':
-            twituser = '@' + twituser
-        willie.say(twituser + ": " + unicode(recent))
-        #except:
+        if found_match:
+            status = api.get_status(found_match.group(2))
+        else:
+            parts = trigger.group(2).split()
+            if parts[0].isdigit():
+                status = api.get_status(parts[0])
+            else:
+                twituser = parts[0]
+                twituser = str(twituser)
+                statusnum = 0
+                if len(parts) > 1 and parts[1].isdigit():
+                    statusnum = int(parts[1]) - 1
+                status = api.user_timeline(twituser)[statusnum]
+        twituser = '@' + status.user.screen_name
+        willie.say(twituser + ": " + unicode(status.text) + ' <' + tweet_url(status) + '>')
+    except:
         willie.reply("You have inputted an invalid user.")
 gettweet.commands = ['twit']
 gettweet.priority = 'medium'
-gettweet.example = '.twit aplusk'
+gettweet.example = '.twit aplusk [tweetNum] or .twit 381982018927853568'
 
 def f_info(willie, trigger):
     """Show information about the given Twitter account"""
