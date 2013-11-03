@@ -16,7 +16,7 @@ from willie.module import rule
 def configure(config):
     """
     These values are all found by signing up your bot at
-    [api.twitter.com](http://api.twitter.com).
+    [https://dev.twitter.com/apps/new](https://dev.twitter.com/apps/new).
 
     | [twitter] | example | purpose |
     | --------- | ------- | ------- |
