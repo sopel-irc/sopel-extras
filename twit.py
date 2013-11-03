@@ -93,8 +93,8 @@ def f_info(willie, trigger):
 
         twituser = trigger.group(2)
         twituser = str(twituser)
-        if twituser[0] == '@':
-            twituser = twituser[1:]
+        if '@' in twituser:
+            twituser = twituser.translate(None, '@')
 
         info = api.get_user(twituser)
         friendcount = format_thousands(info.friends_count)
