@@ -15,9 +15,9 @@ from willie.module import rule
 
 def configure(config):
     """
-    These values are all found by signing up your bot at 
-    [api.twitter.com](http://api.twitter.com).
-    
+    These values are all found by signing up your bot at
+    [https://dev.twitter.com/apps/new](https://dev.twitter.com/apps/new).
+
     | [twitter] | example | purpose |
     | --------- | ------- | ------- |
     | consumer_key | 09d8c7b0987cAQc7fge09 | OAuth consumer key |
@@ -25,7 +25,7 @@ def configure(config):
     | access_token | 564018348-Alldf7s6598d76tgsadfo9asdf56uUf65aVgdsf6 | OAuth access token |
     | access_token_secret | asdfl7698596KIKJVGvJDcfcvcsfdy85hfddlku67 | OAuth access token secret |
     """
-    
+
     if config.option('Configure Twitter? (You will need to register on http://api.twitter.com)', False):
         config.interactive_add('twitter', 'consumer_key', 'Consumer key')
         config.interactive_add('twitter', 'consumer_secret', 'Consumer secret')
@@ -93,6 +93,8 @@ def f_info(willie, trigger):
 
         twituser = trigger.group(2)
         twituser = str(twituser)
+        if twituser[0] == '@':
+            twituser = twituser[1:]
 
         info = api.get_user(twituser)
         friendcount = format_thousands(info.friends_count)
