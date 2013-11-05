@@ -120,6 +120,21 @@ def redmine_issue(bot, trigger, resource_id=None):
         milestone = 'no milestone'
 
     try:
+        estimated_hours = issue['estimated_hours']
+    except KeyError:
+        estimated_hours = 0.0
+
+    try:
+        spent_hours = issue['spent_hours']
+    except KeyError:
+        spent_hours = 0.0
+
+    try:
+        done_ratio = issue['done_ratio']
+    except KeyError:
+        done_ratio = 0
+
+    try:
         created = dateutil.parser.parse(issue['created_on'])
         created = created.strftime('%Y-%m-%d')
     except:
@@ -149,9 +164,9 @@ def redmine_issue(bot, trigger, resource_id=None):
             ' | Created: ' + created + \
             ' | Updated: ' + updated + \
             ' | Milestone: ' + milestone + \
-            ' | Done: ' + str(issue['done_ratio']) + '%' + \
-            ' | Estimated: ' + str(issue['estimated_hours']) + ' hrs' + \
-            ' | Spent: ' + str(issue['spent_hours']) + ' hrs' + \
+            ' | Done: ' + str(done_ratio) + '%' + \
+            ' | Estimated: ' + str(estimated_hours) + ' hrs' + \
+            ' | Spent: ' + str(spent_hours) + ' hrs' + \
             ' <' + build_url(bot, trigger, 'issues', issue['id'], False, False, {}) + '>'
 
     bot.say(HTMLParser().unescape(message))
