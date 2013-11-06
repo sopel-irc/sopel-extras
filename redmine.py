@@ -37,21 +37,21 @@ def setup(bot):
     pattern_url = bot.config.redmine.base_url
     if not pattern_url.endswith('/'):
         pattern_url = pattern_url + '/'
-    pattern_url = pattern_url.replace('https://', '')
-    pattern_url = pattern_url.replace('http://', '')
     redmine = re.compile(pattern_url + '(\S+)\/(\w+)')
     if not bot.memory.contains('url_callbacks'):
         bot.memory['url_callbacks'] = tools.WillieMemory()
     bot.memory['url_callbacks'][redmine] = redmine_url
 
 
-@rule('.*' + pattern_url + '(\S+)\/(\w+).*')
+@rule('.*https?://(\S+)/(\S+)\/(\w+).*')
 def redmine_url(bot, trigger):
+    if bot.config.redmine.base_url.find(trigger.group(1)) == -1:
+        return
     funcs = {
         'issues': redmine_issue
     }
     try:
-        funcs[trigger.group(1)](bot, trigger, trigger.group(2))
+        funcs[trigger.group(2)](bot, trigger, trigger.group(3))
     except:
         bot.say('I had trouble fetching the requested Redmine resource.')
 
