@@ -5,7 +5,7 @@ Licensed under the Eiffel Forum License 2.
 
 http://willie.dfbta.net
 """
-from willie.module import command
+from willie.module import commands
 from random import choice, randint
 from re import search
 import sched
@@ -17,7 +17,7 @@ fuse = 120  # seconds
 bombs = dict()
 
 
-@command('bomb')
+@commands('bomb')
 def start(bot, trigger):
     """
     Put a bomb in the specified user's pants. They will be kicked if they
@@ -49,7 +49,7 @@ def start(bot, trigger):
     sch.run()
 
 
-@command('cutwire')
+@commands('cutwire')
 def cutwire(bot, trigger):
     """
     Tells willie to cut a wire when you've been bombed.

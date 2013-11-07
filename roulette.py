@@ -6,7 +6,7 @@ Licensed under the Eiffel Forum License 2.
 http://willie.dftba.net
 """
 
-from willie.module import command, priority
+from willie.module import commands, priority
 import random
 from datetime import datetime, timedelta
 random.seed()
@@ -37,7 +37,7 @@ ROULETTE_TMP = {
 }
 
 
-@command('roulette')
+@commands('roulette')
 @priority('low')
 def roulette(bot, trigger):
     """Play a game of Russian Roulette"""
@@ -61,7 +61,7 @@ def roulette(bot, trigger):
         bot.say(ROULETTE_STRINGS['TICK'])
 
 
-@command('roulette-stop')
+@commands('roulette-stop')
 @priority('low')
 def rouletteStop(bot, trigger):
     """Reset a game of Russian Roulette"""

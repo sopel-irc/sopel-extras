@@ -7,7 +7,7 @@ http://willie.dftba.net
 This module allows one to query the National Weather Service for active
 watches, warnings, and advisories that are present.
 """
-from willie.module import command, priority
+from willie.module import commands, priority
 import feedparser
 import re
 import urllib
@@ -76,7 +76,7 @@ re_city = re.compile(r'City:</a></td><td class="info"><a href="/city/\S+.asp">(.
 more_info = "Complete weather watches, warnings, and advisories for {0}, available here: {1}"
 
 
-@command('nws')
+@commands('nws')
 @priority('high')
 def nws_lookup(bot, trigger):
     """ Look up weather watches, warnings, and advisories. """
