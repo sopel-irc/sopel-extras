@@ -1,53 +1,30 @@
 from willie import coretasks
 from willie.module import commands
 import os
+import subprocess
 
-start = """
-<!DOCTYPE=HTML>
-<html lang="en">
-<head>
-    <title>{title}</title>
-    <meta charset="utf-8">
-    {stylesheets}
-</head>
-<body>
-"""
-
-default_css = """
-<style type="text/css">
-table.commands {
-    border-width: 1px;
-    border-collapse: collapse;
-    padding: 1px 1px;
-}
-table.commands td {
-    border-width: 1px;
-    padding: 5px 10px;
-    border-style: solid;
-}
-</style>
-"""
 
 @commands('document')
 def document(bot, trigger):
-    title = bot.config.document.page_title or '{} Commands List'.format(bot.nick)
-    stylesheets = ''
-    if bot.config.document.stylesheets:
-        for sheet in bot.config.document.get_list('stylesheets'):
-            stylesheets += '<link href="{}" rel="stylesheet">\n'.format(sheet)
+    base_dir = bot.config.document.base_dir
+    if base_dir[-1] != '/':
+        base_dir += '/'
+    layout = bot.config.document.layout or 'default'
 
-    with open(bot.config.document.commands_file, 'w') as f:
-        f.write(start.format(title=title, stylesheets=stylesheets))
-        if not stylesheets:
-            f.write(default_css)
+    with open(os.path.join(base_dir, 'modules.md'), 'w') as f:
+        front_matter = '''---\nlayout: {}\ntitle: {} commands list\n---\n\n'''
+        f.write(front_matter.format(layout, bot.nick))
+        f.write('| Command | Purpose | Example |\n')
+        f.write('| ------- | ------- | ------- |\n')
 
-        #TODO allow including some sort of header here
-        # Make the actual commands table
-        f.write('<table class="commands">')
         for command in sorted(bot.doc.iterkeys()):
             doc = bot.doc[command]
-            f.write('<tr><td><a name="{command}">{command}</a></td><td>{purpose}</td><td>{example}</td></tr>\n'.format(
-                    command=command, purpose=doc[0], example=doc[1]))
-        f.write('</table>')
-        #TODO allow including some sort of footer here.
-        f.write('</html>')
+            docstring = doc[0].replace('\n\n', '<br />').replace('\n', ' ')
+            f.write('| {} | {} | {} |\n'.format(command, docstring, doc[1]))
+    command = '%(x)s build -s %(b)s -d %(b)s_site -p %(b)s_plugins --layouts %(b)s_layouts'
+    command = (command %
+        {'x': bot.config.document.jekyll_location or 'jekyll',
+         'b': base_dir})
+    print command
+    subprocess.call(command.split(' '))
+    bot.say('Finished processing documentation.')
