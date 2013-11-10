@@ -20,21 +20,21 @@ def configure(config):
         config.interactive_add('document', 'layout',
             'The jekyll layout to use for the commands page')
         config.interactive_add('document', 'base_dir',
-            'The location of the jekyll site source '
+            'The location of the jekyll site source ')
         config.interactive_add('document', 'plugins_dir',
-            'The location of the jekyll plugins directory'
+            'The location of the jekyll plugins directory')
         config.interactive_add('document', 'layouts_dir',
-            'The location of the jekyll layouts directory'
+            'The location of the jekyll layouts directory')
         config.interactive_add('document', 'output_dir',
-            'The location of the jekyll generated site'
+            'The location of the jekyll generated site')
         config.interactive_add('document', 'jekyll_location',
             "The location of the jekyll executable. Not needed if jekyll is on"
-            " the user's PATH."
+            " the user's PATH.")
 
 
 def setup(bot):
     if not bot.config.document.base_dir:
-       raise ConfigurationError('Must provide Jekyll base_dir')
+        raise ConfigurationError('Must provide Jekyll base_dir')
 
 
 @commands('document')
