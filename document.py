@@ -61,6 +61,6 @@ def document(bot, trigger):
         output_dir, plugins_dir, layouts_dir)
     # We don't give a shit what it says, but it fucking crashes if we don't
     # listen. Fucking needy asshole piece of Ruby shit.
-    data = subprocess.call(command.split(' '), stdout=subprocess.PIPE,
+    data = subprocess.Popen(command.split(' '), stdout=subprocess.PIPE,
         stderr=subprocess.PIPE).communicate()
     bot.say('Finished processing documentation.')
