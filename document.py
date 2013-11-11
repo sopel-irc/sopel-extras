@@ -59,6 +59,8 @@ def document(bot, trigger):
     command = "{} build -s {} -d {} -p {} --layouts {}"
     command = command.format(conf.jekyll_location or 'jekyll', base_dir,
         output_dir, plugins_dir, layouts_dir)
-    print command
-    subprocess.call(command.split(' '))
+    # We don't give a shit what it says, but it fucking crashes if we don't
+    # listen. Fucking needy asshole piece of Ruby shit.
+    data = subprocess.call(command.split(' '), stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE).communicate()
     bot.say('Finished processing documentation.')
