@@ -46,6 +46,7 @@ def configure(config):
     | literal_path | /home/willie/www/bucket | The path in which to store output of the literal command |
     | literal_baseurl | http://example.net/~willie/bucket | The base URL for literal output |
     | inv_size | 15 | The maximum amount of items that Willie can keep. |
+    | fact_length | 6 | Minimum length of a factoid without being address |
     """
     if config.option('Configure Bucket factiod DB', False):
         config.interactive_add('bucket', 'db_host', "Enter the MySQL hostname", 'localhost')
@@ -55,6 +56,7 @@ def configure(config):
         config.interactive_add('bucket', 'literal_path', "Enter the path in which you want to store output of the literal command")
         config.interactive_add('bucket', 'literal_baseurl', "Base URL for literal output")
         config.interactive_add('bucket', 'inv_size', "Inventory size", '15')
+	config.interactive_add('bucket', 'fact_length', 'Minimum length of a factoid without being address', '6')
         if config.option('do you want to generate bucket tables and populate them with some default data?', True):
             db = MySQLdb.connect(host=config.bucket.db_host,
                                  user=config.bucket.db_user,
@@ -468,8 +470,9 @@ def say_fact(willie, trigger):
         search_term = search_term[(len(willie.nick) + 1):].strip()  # Remove our nickname from the search term
     search_term = remove_punctuation(search_term).strip()
 
-    if len(query) < 6 and not addressed:
-        return  # Ignore factoids shorter than 6 chars when not addressed
+    fact_length =  willie.config.bucket.fact_length or 6
+    if len(query) < int(fact_length) and not addressed:
+        return # Ignore factoids shorter than configured or default 6 chars when not addresed
     if addressed and len(search_term) is 0:
         return  # Ignore 0 length queries when addressed
     if search_term == 'don\'t know' and not addressed:
