@@ -471,7 +471,7 @@ def say_fact(willie, trigger):
     search_term = remove_punctuation(search_term).strip()
 
     fact_length =  willie.config.bucket.fact_length or 6
-    if len(query) < int(fact_length):
+    if len(query) < int(fact_length) and not addressed:
         return # Ignore factoids shorter than configured or default 6 chars when not addresed
     if addressed and len(search_term) is 0:
         return  # Ignore 0 length queries when addressed
