@@ -106,7 +106,7 @@ def calibre(bot, trigger):
 			bot.msg(trigger.nick, u'{}: {}/browse/book/{}'
 				.format(book['title'], calibre.url, book_id))
 	else:
-		bot.say("Alexandria: No results found.")
+		bot.say("Calibre: No results found.")
 
 
 @commands('calurl')
