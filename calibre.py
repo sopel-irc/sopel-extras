@@ -35,7 +35,7 @@ class CalibreRestFacade(object):
 		"""
 		Get all books corresponding to a list of IDs
 		"""
-		book_ids_csv = ','.join(str(i) for i in book_ids)
+		book_ids_csv = ','.join(str(b_id) for b_id in book_ids)
 		return requests.get(self.url + '/ajax/books', 
 			auth=self.auth, params={'ids': book_ids_csv}).json()
 
