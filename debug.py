@@ -4,7 +4,7 @@ debug.py - Willie Debugging Module
 Copyright 2013, Dimitri "Tyrope" Molenaars, Tyrope.nl
 Licensed under the Eiffel Forum License 2.
 
-http://willie.dfbta.net
+http://willie.dftba.net
 """
 
 from willie.module import commands, example
