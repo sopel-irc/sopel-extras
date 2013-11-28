@@ -21,3 +21,22 @@ def privileges(bot, trigger):
     else:
         bot.say(str(bot.privileges))
 
+@commands('admins')
+@example('.admins')
+def admins(bot, trigger):
+    """Print the list of admins, including the owner."""
+    owner = bot.config.core.owner
+    admins = str(bot.config.core.get_list('admins'))
+    bot.say("[Owner]"+owner+" [Admins]"+admins)
+
+@commands('debug_print')
+@example('.debug_print')
+def debug_print(bot, trigger):
+    """Calls version, admins and privileges prints in sequence."""
+    try:
+        willie.modules.version.version(bot, trigger)
+    except Exception as e:
+        bot.say('An error occured trying to get the current version.')
+    admins(bot, trigger)
+    privileges(bot, trigger)
+
