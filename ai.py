@@ -26,6 +26,7 @@ def configure(config):
         
         
 def setup(bot):
+    # Set value to 3 if not configured
     if bot.config.ai and bot.config.ai.frequency:
         bot.memory['frequency'] = bot.config.ai.frequency
     else:
@@ -35,7 +36,7 @@ def setup(bot):
         
         
 def decide(bot):
-    return 0 < random.random() < float(bot.config.ai.frequency) / 10
+    return 0 < random.random() < float(bot.memory['frequency']) / 10
 
 
 @rule('(?i)$nickname\:\s+(bye|goodbye|seeya|cya|ttyl|g2g|gnight|goodnight)')
