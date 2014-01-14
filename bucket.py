@@ -35,7 +35,7 @@ def configure(config):
     """
     It is highly recommended that you run the configuration utility on this
     module, as it will handle creating an initializing your database. More
-    information on this module at https://github.com/embolalia/willie/wiki/The-Bucket-Module:-User-and-Bot-Owner-Documentation
+    information on this module at https://github.com/embolalia/willie-extras/wiki/The-Bucket-Module:-User-and-Bot-Owner-Documentation
 
     | [bucket] | example | purpose |
     | -------- | ------- | ------- |
