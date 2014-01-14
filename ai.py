@@ -9,8 +9,34 @@ from willie.module import rule, priority, rate
 import random
 import time
 
-random.seed()
-limit = 3
+
+def configure(config):
+    """
+    | [ai] | example | purpose |
+    | ---------- | ------- | ------- |
+    | frequency | 3 | How often Willie participates in the conversation (0-10) |
+    """
+    if config.option('Configure ai module', False):
+            if not config.has_section('ai'):
+                    config.add_section('ai')
+            config.interactive_add('ai', 'frequency', 
+                                   "How often do you want Willie to participate in the conversation? (0-10)",
+                                   3)
+            config.save()     
+        
+        
+def setup(bot):
+    # Set value to 3 if not configured
+    if bot.config.ai and bot.config.ai.frequency:
+        bot.memory['frequency'] = bot.config.ai.frequency
+    else:
+        bot.memory['frequency'] = 3
+        
+    random.seed()
+        
+        
+def decide(bot):
+    return 0 < random.random() < float(bot.memory['frequency']) / 10
 
 
 @rule('(?i)$nickname\:\s+(bye|goodbye|seeya|cya|ttyl|g2g|gnight|goodnight)')
@@ -89,8 +115,7 @@ def love3(bot, trigger):
 @rule('(haha!?|lol!?)$')
 @priority('high')
 def f_lol(bot, trigger):
-    randnum = random.random()
-    if 0 < randnum < limit:
+    if decide(bot):
         respond = ['haha', 'lol', 'rofl']
         randtime = random.uniform(0, 9)
         time.sleep(randtime)
@@ -107,8 +132,7 @@ def f_bye(bot, trigger):
 @rule('(heh!?)$')
 @priority('high')
 def f_heh(bot, trigger):
-    randnum = random.random()
-    if 0 < randnum < limit:
+    if decide(bot):
         respond = ['hm']
         randtime = random.uniform(0, 7)
         time.sleep(randtime)
