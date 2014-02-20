@@ -10,7 +10,7 @@ http://willie.dftba.net
 from willie.module import commands, example
 
 @commands('privs')
-@example('.privs to get the full database, or .privs #channel to get those of just the channel.')
+@example('.privs', '.privs #channel')
 def privileges(bot, trigger):
     """Print the privileges of a specific channel, or the entire array."""
     if trigger.group(2):
@@ -39,4 +39,10 @@ def debug_print(bot, trigger):
         bot.say('An error occured trying to get the current version.')
     admins(bot, trigger)
     privileges(bot, trigger)
+
+@commands('raiseException', 'causeProblems', 'giveError')
+@example('.causeException')
+def cause_problems(bot, trigger):
+    """This deliberately causes willie to raise exceptional problems."""
+    raise Exception("Problems were caused on command.")
 
