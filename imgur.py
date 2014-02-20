@@ -1,11 +1,17 @@
-#!/usr/bin/env python
+# -*- coding: utf8 -*-
+"""
+imgur.py - Willie imgur Information Module
+Copyright © 2014, iceTwy, <icetwy@icetwy.re>
+Licensed under the Eiffel Forum License 2.
+"""
 
-import requests
+import json
 import re
 import os.path
+from urllib2 import HTTPError
 from urlparse import urlparse
 from willie.config import ConfigurationError
-from willie import tools
+from willie import web, tools
 from willie.module import rule
 
 class ImgurClient(object):
@@ -20,14 +26,21 @@ class ImgurClient(object):
     def request(self, input):
         """
         Sends a request to the API. Only publicly available data is accessible.
-        Returns data as pretty JSON.
+        Returns data as JSON.
         """
-
         headers = {'Authorization': 'Client-ID ' + self.client_id,
                    'Accept': 'application/json'}
-        request = requests.get(self.api_url + input, headers=headers)
-        request.raise_for_status()
-        return request.json()
+        request = web.get(self.api_url + input, headers=headers)
+        #FIXME: raise for status
+        return json.loads(request)
+
+    def resource(self, resource, id):
+        """
+        Retrieves a resource from the imgur API.
+        Returns data as JSON.
+        """
+        api_request_path = '{0}/{1}'.format(resource, id)
+        return self.request(api_request_path)
 
 def configure(config):
     """
@@ -51,7 +64,7 @@ def setup(bot):
     try:
         client = ImgurClient(bot.config.imgur.client_id)
         client.request('gallery.json')
-    except requests.exceptions.HTTPError:
+    except HTTPError:
         raise ConfigurationError('Could not validate the client ID with Imgur. \
                                  Are you sure you set it up correctly?')
     imgur_regex = re.compile('(?:https?://)?(?:i\.)?imgur\.com/(.*)$')
@@ -66,15 +79,12 @@ def album(link_id, bot):
     of the album.
     """
     client = ImgurClient(bot.config.imgur.client_id)
-    album_api_url = "album/" + link_id
-    try:
-        json_album_response = client.request(album_api_url)
-    except requests.HTTPError:
-        return bot.say('[imgur] [Album not found]')
-    album = json_album_response['data']
-    return bot.say('[imgur] ' + '[' + album['title'] + \
-                   ' - an album with ' + str(album['images_count']) + ' images' \
-                   ' and ' + str(album['views']) + ' views]')
+    api_response = client.resource('album', link_id)
+    album = api_response['data']
+    return bot.say('[imgur] [{0} - an album with {1} images and ' \
+                   '{2} views]'.format(album['title'],
+                                       str(album['images_count']), \
+                                       str(album['views'])))
 
 def gallery(link_id, bot):
     """
@@ -83,27 +93,26 @@ def gallery(link_id, bot):
     views, the number of upvotes/downvotes of the gallery resource.
     """
     client = ImgurClient(bot.config.imgur.client_id)
-    gallery_api_url = "gallery/" + link_id
-    try:
-        json_gallery_response = client.request(gallery_api_url)
-    except requests.HTTPError:
-        return bot.say('[imgur] [Gallery resource not found]')
-    gallery = json_gallery_response['data']
+    api_response = client.resource('gallery', link_id)
+    gallery = api_response['data']
     if gallery['is_album']:
-        return bot.say('[imgur] ' + '[' + gallery['title'] + \
-                       ' - a gallery album with ' + str(gallery['views']) + \
-                       ' views (' + str(gallery['ups']) + ' ups and ' + \
-                       str(gallery['downs']) + ' downs)]')
-    if gallery['type'] == 'image/gif':
-        return bot.say('[imgur] ' + '[' + gallery['title'] + \
-                       ' - a gallery gif with ' + str(gallery['views']) + \
-                       ' views (' + str(gallery['ups']) + ' ups and ' + \
-                       str(gallery['downs']) + ' downs)]')
+        return bot.say('[imgur] [{0} - a gallery album with {1} views ' \
+                       '({2} ups and {3} downs)]'.format(gallery['title'], \
+                                                         str(gallery['views']), \
+                                                         str(gallery['ups']), \
+                                                         str(gallery['downs'])))
+    if gallery['animated'] == True:
+        return bot.say('[imgur] [{0} - a gallery gif with {1} views ' \
+                       '({2} ups and {3} downs)]'.format(gallery['title'], \
+                                                         str(gallery['views']), \
+                                                         str(gallery['ups']), \
+                                                         str(gallery['downs'])))
     else:
-        return bot.say('[imgur] ' + '[' + gallery['title'] + \
-                       ' - a gallery image with ' + str(gallery['views']) + \
-                       ' views (' + str(gallery['ups']) + ' ups and ' + \
-                       str(gallery['downs']) + ' downs)]')
+        return bot.say('[imgur] [{0} - a gallery image with {1} views ' \
+                       '({2} ups and {3} downs)]'.format(gallery['title'], \
+                                                         str(gallery['views']),
+                                                         str(gallery['ups']),
+                                                         str(gallery['downs'])))
 
 def user(username, bot):
     """
@@ -112,20 +121,17 @@ def user(username, bot):
     liked resources, of the selected user.
     """
     client = ImgurClient(bot.config.imgur.client_id)
-    account_api_url = "account/" + username
-    try:
-        json_account_response = client.request(account_api_url)
-    except requests.HTTPError:
-        return bot.say('[imgur] [User not found]')
-    account = json_account_response['data']
-    json_account_profile_response = client.request(account_api_url + '/gallery_profile')
-    profile = json_account_profile_response['data']
-    return bot.say('[imgur] ' + '[' + account['url'] + \
-                   ' is an imgurian with ' + str(account['reputation']) + \
-                   ' points of reputation, ' + str(profile['total_gallery_submissions']) + \
-                   ' gallery submissions, ' + str(profile['total_gallery_comments']) + \
-                   ' comments, ' + 'and ' + str(profile['total_gallery_likes']) + \
-                   ' likes]')
+    api_response_account = client.resource('account', username)
+    api_response_gallery_profile = client.resource('account', username + '/gallery_profile')
+    account = api_response_account['data']
+    gallery_profile = api_response_gallery_profile['data']
+    return bot.say('[imgur] [{0} is an imgurian with {1} points of reputation, ' \
+                   '{2} gallery submissions, {3} comments ' \
+                   'and {4} likes]'.format(account['url'], \
+                                           str(account['reputation']), \
+                                           str(gallery_profile['total_gallery_submissions']), \
+                                           str(gallery_profile['total_gallery_comments']), \
+                                           str(gallery_profile['total_gallery_likes'])))
 
 def image(link_id, bot):
     """
@@ -134,12 +140,8 @@ def image(link_id, bot):
     of the selected image.
     """
     client = ImgurClient(bot.config.imgur.client_id)
-    image_api_url = "image/" + link_id
-    try:
-        json_image_response = client.request(image_api_url)
-    except requests.HTTPError:
-        return bot.say('[imgur] [Image not found]')
-    img = json_image_response['data']
+    api_response = client.resource('image', link_id)
+    img = api_response['data']
     if img['title']:
         title = img['title']
     if not img['title'] and img['description']:
@@ -147,11 +149,11 @@ def image(link_id, bot):
     if not img['title'] and not img['description']:
         title = 'untitled'
     if img['animated']:
-        return bot.say('[imgur] ' + '[' + title + \
-                       ' - a gif with ' + str(img['views']) + ' views]')
+        return bot.say('[imgur] [{0} - a gif with {1} views]'.format(title, \
+                                                                     str(img['views'])))
     else:
-        return bot.say('[imgur] ' + '[' + title + \
-                       ' - an image with ' + str(img['views']) + ' views]')
+        return bot.say('[imgur] [{0} - an image with {1} views]'.format(title, \
+                                                                        str(img['views'])))
 
 @rule('(?:https?://)?(?:i\.)?imgur\.com/(.*)$')
 def imgur(bot, trigger):
@@ -182,7 +184,7 @@ def imgur(bot, trigger):
     image or album, or a path to a certain imgur resource (e.g. gallery/id,
     user/username, and so forth).
 
-    It is more foul-proof to only demand gallery data from the imgur API
+    It is more fool-proof to only demand gallery data from the imgur API
     if we get a link that is of the form imgur.com/gallery/id, because
     imgur IDs are not unique (see above) and we can trigger an error if
     we request inexistant gallery data.
@@ -203,27 +205,35 @@ def imgur(bot, trigger):
     """Handle imgur.com/* links."""
     #Get the path to the requested resource, from the URL (id, gallery/id, user/username, a/id)
     resource_path = urlparse(trigger).path.lstrip('/')
+
     #The following API endpoints require user authentication, which we do not support.
     unauthorized = ['settings', 'notifications', 'message', 'stats']
     if any(item in resource_path for item in unauthorized):
         return bot.reply("[imgur] Unauthorized action.")
+
     #Separate the URL path into an ordered list of the form ['gallery', 'id']
     resource_path_parts = filter(None, resource_path.split('/'))
+
     #Handle a simple link to imgur.com: no ID is given, meaning that the length of the above list is null
     if len(resource_path_parts) == 0:
         return
+
     #Handle a link with a path that has more than two components
     if len(resource_path_parts) > 2:
         return bot.reply("[imgur] Invalid link.")
+
     #Handle a link to an ID: imgur.com/id
     if len(resource_path_parts) == 1:
         return image(resource_path_parts[0], bot)
+
     #Handle a link to a gallery image/album: imgur.com/gallery/id
     if resource_path_parts[0] == 'gallery':
         return gallery(resource_path_parts[1], bot)
+
     #Handle a link to an user account/profile: imgur.com/user/username
     if resource_path_parts[0] == 'user':
         return user(resource_path_parts[1], bot)
+
     #Handle a link to an album: imgur.com/a/id
     if resource_path_parts[0] == 'a':
         return album(resource_path_parts[1], bot)
