@@ -41,7 +41,7 @@ def debug_print(bot, trigger):
     privileges(bot, trigger)
 
 @commands('raiseException', 'causeProblems', 'giveError')
-@example('.causeException')
+@example('.raiseException')
 def cause_problems(bot, trigger):
     """This deliberately causes willie to raise exceptional problems."""
     raise Exception("Problems were caused on command.")
