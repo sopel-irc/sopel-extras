@@ -400,7 +400,7 @@ def inv_give(willie, trigger):
         item = '%s %s' % (trigger.group(5), item)
         item = re.sub(r'^me ', trigger.nick + ' ', item, re.IGNORECASE)
     if trigger.group(3) is not '':
-        item = re.sub(r'^his ', '%s\'s ' % trigger.nick, item, re.IGNORECASE)
+        item = re.sub(r'^(his|her|its|their) ', '%s\'s ' % trigger.nick, item, re.IGNORECASE)
 
     item = item.strip()
     dropped = inventory.add(item, trigger.nick, trigger.sender, willie)
