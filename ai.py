@@ -147,7 +147,7 @@ def f_really(bot, trigger):
     bot.say(str(trigger.nick) + ": " + "Yes, really.")
 
 
-@rule('^(wb|welcome\sback).*$nickname\s')
+@rule('^(wb|welcome\sback).*$nickname')
 def wb(bot, trigger):
     bot.reply("Thank you!")
 
