@@ -94,21 +94,9 @@ def ping_reply(bot, trigger):
         bot.reply("PONG")
 
 
-@rule('(?i)i.*love.*(willie|$nickname).*')
+@rule('(?i)((willie|$nickname)\[,:]\s*i.*love|i.*love.*(willie|$nickname).*)')
 @rate(30)
 def love(bot, trigger):
-    bot.reply("I love you too.")
-
-
-@rule('(?i)(willie|$nickname)\:\si.*love.*')
-@rate(30)
-def love2(bot, trigger):
-    bot.reply("I love you too.")
-
-
-@rule('(?i)(willie|$nickname)\,\si.*love.*')
-@rate(30)
-def love3(bot, trigger):
     bot.reply("I love you too.")
 
 
