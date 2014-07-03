@@ -100,6 +100,15 @@ def love(bot, trigger):
     bot.reply("I love you too.")
 
 
+@rule('\s*([Xx]+[dD]+|([Hh]+[Aa]+)+)')
+@rate(30)
+def xd(bot, trigger):
+    respond = ['xDDDDD', 'XD', 'XDDDD', 'haha']
+    randtime = random.uniform(0, 3)
+    time.sleep(randtime)
+    bot.say(random.choice(respond))
+
+
 @rule('(haha!?|lol!?)$')
 @priority('high')
 def f_lol(bot, trigger):
