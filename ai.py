@@ -147,9 +147,14 @@ def f_really(bot, trigger):
     bot.say(str(trigger.nick) + ": " + "Yes, really.")
 
 
-@rule('^(wb|welcome\sback).*$nickname')
+@rule('^\s*[Ww]([Bb]|elcome\s*back)[\s:,].*$nickname')
 def wb(bot, trigger):
-    bot.reply("Thank you!")
+    str1 = ['Thank you', 'thanks']
+    str2 = ['!', ':)', ':D']
+    respond = [ str1 + ' ' + str2 for str1 in set1 for str2 in set2]
+    randtime = random.uniform(0, 7)
+    time.sleep(randtime)
+    bot.reply(random.choice(respond))
 
 
 if __name__ == '__main__':
