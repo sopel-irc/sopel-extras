@@ -122,7 +122,7 @@ def f_lol(bot, trigger):
         bot.say(random.choice(respond))
 
 
-@rule('([Bb](ye(\s?bye)?)|see\s?y(a|ou)|cya|ttyl|[Gg](2g|tg|(ood\s?(bye|night))))\s*(!|~|.)?$')
+@rule('^\s*(([Bb]+([Yy]+[Ee]+(\s*[Bb]+[Yy]+[Ee]+)?)|[Ss]+[Ee]{2,}\s*[Yy]+[Aa]+|[Oo]+[Uu]+)|cya|ttyl|[Gg](2[Gg]|[Tt][Gg]|([Oo]{2,}[Dd]+\s*([Bb]+[Yy]+[Ee]+|[Nn]+[Ii]+[Gg]+[Hh]+[Tt]+)))\s*(!|~|.)*)$')
 @priority('high')
 def f_bye(bot, trigger):
     set1 = ['bye', 'byebye', 'see you', 'see ya', 'Good bye', 'have a nice day']
@@ -130,7 +130,7 @@ def f_bye(bot, trigger):
     respond = [ str1 + ' ' + str2 for str1 in set1 for str2 in set2]
     bot.say(random.choice(respond))
 
-@rule('^([Hh](allo+|ello+|ey+|i+)|yo|anybody)\s*(all)?\s*(!|\?|~|.)?$')
+@rule('^\s*(([Hh]+([AaEe]+[Ll]+[Oo]+|[Ii]+)+\s*(all)?)|[Yy]+[Oo]+|[Aa]+[Ll]+)\s*(!+|\?+|~+|.+|[:;][)DPp]+)*$')
 @priority('high')
 def f_hello(bot, trigger):
     randtime = random.uniform(0, 7)
