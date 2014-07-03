@@ -22,19 +22,19 @@ def configure(config):
             config.interactive_add('ai', 'frequency', 
                                    "How often do you want Willie to participate in the conversation? (0-10)",
                                    3)
-            config.save()     
-        
-        
+            config.save()
+
+
 def setup(bot):
     # Set value to 3 if not configured
     if bot.config.ai and bot.config.ai.frequency:
         bot.memory['frequency'] = bot.config.ai.frequency
     else:
         bot.memory['frequency'] = 3
-        
+
     random.seed()
-        
-        
+
+
 def decide(bot):
     return 0 < random.random() < float(bot.memory['frequency']) / 10
 
@@ -127,13 +127,13 @@ def f_bye(bot, trigger):
     respond = [ str1 + ' ' + str2 for str1 in set1 for str2 in set2]
     bot.say(random.choice(respond))
 
-@rule('^\s*(([Hh]+([AaEe]+[Ll]+[Oo]+|[Ii]+)+\s*(all)?)|[Yy]+[Oo]+|[Aa]+[Ll]+)\s*(!+|\?+|~+|.+|[:;][)DPp]+)*$')
+@rule('^\s*(([Hh]+([AaEe]+[Ll]+[Oo]+|[Ii]+)+\s*(all)?)|[Yy]+[Oo]+|[Aa]+[Ll]+|[Aa]nybody)\s*(!+|\?+|~+|.+|[:;][)DPp]+)*$')
 @priority('high')
 def f_hello(bot, trigger):
     randtime = random.uniform(0, 7)
     time.sleep(randtime)
-    set1 = ['yo', 'hey', 'hi', 'Hi', 'hello', 'Hello', 'Welcome', 'How do you do']
-    set2 = ['~', '~~~', '!', '?', ' :)', ':D', 'xD', '(Y)', '(y)', ':P', ':-D', ';)']
+    set1 = ['yo', 'hey', 'hi', 'Hi', 'hello', 'Hello', 'Welcome']
+    set2 = ['~', '~~~', '!', '?', ' :)', ':D', 'xD', '(Y)', '(y)', ':P', ':-D', ';)', ', How do you do?']
     respond = [ str1 + ' ' + str2 for str1 in set1 for str2 in set2]
     bot.say(random.choice(respond))
 
