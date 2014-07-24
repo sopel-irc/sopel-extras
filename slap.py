@@ -15,6 +15,8 @@ def slap(willie, trigger):
     text = trigger.group().split()
     if len(text) < 2 or text[1].startswith('#'):
         return
+    if text[1] == 'me' or text[1] == 'myself':
+        text[1] = trigger.nick
     if text[1] == willie.nick:
         if (trigger.nick not in willie.config.admins):
             text[1] = trigger.nick
