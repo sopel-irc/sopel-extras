@@ -7,6 +7,7 @@ http://willie.dftba.net
 
 import random
 from willie.module import commands
+from willie.tools import Nick
 
 
 @commands('slap', 'slaps')
@@ -23,12 +24,7 @@ def slap(willie, trigger):
     if text[1] in willie.config.admins:
         if (trigger.nick not in willie.config.admins):
             text[1] = trigger.nick
-    target_present = False
-    for user in willie.privileges[trigger.sender.lower()]:
-        if text[1] == user:
-            target_present = True
-            break
-    if not target_present:
+    if Nick(text[1]) not in willie.privileges[trigger.sender.lower()]:
         willie.say("You can't slap someone who isn't here!")
         return
     verb = random.choice(('slaps', 'kicks', 'destroys', 'annihilates', 'punches', 'roundhouse kicks', 'pwns', 'owns'))
