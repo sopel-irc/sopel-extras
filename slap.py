@@ -16,6 +16,9 @@ def slap(willie, trigger):
     text = trigger.group().split()
     if len(text) < 2 or text[1].startswith('#'):
         return
+    if Nick(text[1]) not in willie.privileges[trigger.sender.lower()]:
+        willie.say("You can't slap someone who isn't here!")
+        return
     if text[1] == willie.nick:
         if (trigger.nick not in willie.config.admins):
             text[1] = trigger.nick
@@ -24,8 +27,5 @@ def slap(willie, trigger):
     if text[1] in willie.config.admins:
         if (trigger.nick not in willie.config.admins):
             text[1] = trigger.nick
-    if Nick(text[1]) not in willie.privileges[trigger.sender.lower()]:
-        willie.say("You can't slap someone who isn't here!")
-        return
     verb = random.choice(('slaps', 'kicks', 'destroys', 'annihilates', 'punches', 'roundhouse kicks', 'pwns', 'owns'))
     willie.write(['PRIVMSG', trigger.sender, ' :\x01ACTION', verb, text[1], '\x01'])
