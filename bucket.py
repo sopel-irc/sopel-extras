@@ -265,7 +265,7 @@ def teach_verb(willie, trigger):
     if verb == '<alias>':
         db = connect_db(willie)
         cur = db.cursor()
-        cur.execute('SELECT * FROM bucket_facts WHERE fact = %s;', tidbit)
+        cur.execute('SELECT * FROM bucket_facts WHERE fact = %s;', [tidbit])
         results = cur.fetchall()
         db.close()
         if len(results) == 0 and success:
@@ -324,7 +324,7 @@ def delete_factoid(willie, trigger):
     db = connect_db(willie)
     cur = db.cursor()
     try:
-        cur.execute('SELECT * FROM bucket_facts WHERE ID = %s;', int(trigger.group(1)))
+        cur.execute('SELECT * FROM bucket_facts WHERE ID = %s;', [int(trigger.group(1))])
         results = cur.fetchall()
         if len(results) > 1:
             willie.debug('bucket', 'More than one factoid with the same ID?', 'warning')
@@ -334,7 +334,7 @@ def delete_factoid(willie, trigger):
         elif len(results) == 0:
             willie.reply('No such factoid')
             return
-        cur.execute('DELETE FROM bucket_facts WHERE ID = %s', int(trigger.group(1)))
+        cur.execute('DELETE FROM bucket_facts WHERE ID = %s', [int(trigger.group(1))])
         db.commit()
     except:
         willie.say("Delete failed! are you sure this is a valid factoid ID?")
@@ -418,7 +418,7 @@ def inv_give(willie, trigger):
     else:
         #Query for 'pickup full'
         search_term = 'pickup full'
-    cur.execute('SELECT * FROM bucket_facts WHERE fact = %s;', search_term)
+    cur.execute('SELECT * FROM bucket_facts WHERE fact = %s;', [search_term])
     results = cur.fetchall()
     db.close()
     result = pick_result(results, willie)
@@ -524,7 +524,7 @@ def say_fact(willie, trigger):
         elif factoid_search is not None:
             cur.execute('SELECT * FROM bucket_facts WHERE fact = %s AND tidbit LIKE %s ORDER BY id ASC;', (factoid_search.group(1), '%' + factoid_search.group(2) + '%'))
         else:
-            cur.execute('SELECT * FROM bucket_facts WHERE fact = %s ORDER BY id ASC;', search_term)
+            cur.execute('SELECT * FROM bucket_facts WHERE fact = %s ORDER BY id ASC;', [search_term])
         results = cur.fetchall()
     except UnicodeEncodeError, e:
         willie.debug('bucket', 'Warning, database encoding error', 'warning')
@@ -597,7 +597,7 @@ def pick_result(results, willie):
             cur = db.cursor()
             search_term = result[2].strip()
             try:
-                cur.execute('SELECT * FROM bucket_facts WHERE fact = %s;', search_term)
+                cur.execute('SELECT * FROM bucket_facts WHERE fact = %s;', [search_term])
                 results = cur.fetchall()
             except UnicodeEncodeError, e:
                 willie.debug('bucket', 'Warning, database encoding error', 'warning')
