@@ -57,7 +57,7 @@ def configure(config):
         config.interactive_add('bucket', 'literal_path', "Enter the path in which you want to store output of the literal command")
         config.interactive_add('bucket', 'literal_baseurl', "Base URL for literal output")
         config.interactive_add('bucket', 'inv_size', "Inventory size", '15')
-	config.interactive_add('bucket', 'fact_length', 'Minimum length of a factoid without being address', '6')
+        config.interactive_add('bucket', 'fact_length', 'Minimum length of a factoid without being address', '6')
         if config.option('do you want to generate bucket tables and populate them with some default data?', True):
             db = MySQLdb.connect(host=config.bucket.db_host,
                                  user=config.bucket.db_user,
@@ -107,7 +107,7 @@ class Inventory():
             cur = db.cursor()
             try:
                 cur.execute('INSERT INTO bucket_items (`channel`, `what`, `user`) VALUES (%s, %s, %s);', (channel, item.encode('utf8'), user))
-            except MySQLdb.IntegrityError, e:
+            except MySQLdb.IntegrityError as e:
                 willie.debug('bucket', 'IntegrityError in inventory code', 'warning')
                 willie.debug('bucket', str(e), 'warning')
             db.commit()
@@ -383,25 +383,31 @@ def undo_teach(willie, trigger):
 
 
 @rule('((^\001ACTION (gives|hands) $nickname)|^$nickname. (take|have) (this|my|your|.*)) (.*)')
+@rule('^\001ACTION puts (.*) in $nickname')
 @priority('medium')
 def inv_give(willie, trigger):
     ''' Called when someone gives us an item '''
     bucket_runtime_data.inhibit_reply = trigger
     was = bucket_runtime_data.what_was_that
     inventory = bucket_runtime_data.inventory
-    item = trigger.group(6)
+    groups = len(trigger.groups())
+    if groups > 1:
+        item = trigger.group(6)
+    else:
+        item = trigger.group(1)
     if item.endswith('\001'):
         item = item[:-1]
     item = item.strip()
 
-    if trigger.group(5) == 'my':
-        item = '%s\'s %s' % (trigger.nick, item)
-    elif trigger.group(5) == 'your':
-        item = '%s\'s %s' % (willie.nick, item)
-    elif trigger.group(5) != 'this' and trigger.group(5) is not None:
-        item = '%s %s' % (trigger.group(5), item)
-        item = re.sub(r'^me ', trigger.nick + ' ', item, re.IGNORECASE)
-    if trigger.group(3) is not '':
+    if groups > 1:
+        if trigger.group(5) == 'my':
+            item = '%s\'s %s' % (trigger.nick, item)
+        elif trigger.group(5) == 'your':
+            item = '%s\'s %s' % (willie.nick, item)
+        elif trigger.group(5) != 'this' and trigger.group(5) is not None:
+            item = '%s %s' % (trigger.group(5), item)
+            item = re.sub(r'^me ', trigger.nick + ' ', item, re.IGNORECASE)
+    if groups == 1 or trigger.group(3) != '':
         item = re.sub(r'^(his|her|its|their) ', '%s\'s ' % trigger.nick, item, re.IGNORECASE)
 
     item = item.strip()
