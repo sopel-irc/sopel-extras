@@ -151,6 +151,18 @@ class Inventory():
         except ValueError:
             return False
 
+    def destroy(self, item, bot):
+        ''' Deletes an item from the database '''
+        if item not in self.avilable_items:
+            return False
+        self.remove(item)  # First, remove it from the inventory if present
+        self.avilable_items.remove(item)  # remove it from the cache
+        db = connect_db(bot)
+        cur = db.cursor()
+        cur.execute('DELETE FROM bucket_items WHERE what=%s;', (item.encode('utf8')))
+        db.close()
+        return True
+
 
 class bucket_runtime_data():
     dont_know_cache = []  # Caching all the Don't Know factoids to reduce amount of DB reads
@@ -179,8 +191,6 @@ def setup(bot):
         print 'Error connecting to the bucket database.'
         raise
         return
-    #caching "Don't Know" replies
-    rebuild_dont_know_cache(bot)
     bucket_runtime_data.inventory = Inventory()
     cur = db.cursor()
     cur.execute('SELECT * FROM bucket_items;')
@@ -189,16 +199,6 @@ def setup(bot):
     for item in items:
         bucket_runtime_data.inventory.avilable_items.append(item[2])
     print 'Done setting up Bucket!'
-
-
-def rebuild_dont_know_cache(bot):
-    db = connect_db(bot)
-    cur = db.cursor()
-    cur.execute('SELECT * FROM bucket_facts WHERE fact = "Don\'t Know";')
-    results = cur.fetchall()
-    for result in results:
-        bucket_runtime_data.dont_know_cache.append(result)
-    db.close()
 
 
 def add_fact(bot, trigger, fact, tidbit, verb, re, protected, mood, chance, say=True):
@@ -274,8 +274,6 @@ def teach_verb(bot, trigger):
             bot.say('Okay, %s. but, FYI, %s doesn\'t exist yet' % (trigger.nick, tidbit))
         if len(results) > 0 and success:
             bot.say('Okay, %s' % trigger.nick)
-    if fact.lower() == 'don\'t know':
-        rebuild_dont_know_cache(bot)
 
 
 @rule('$nick' 'remember (.*?) (.*)')
@@ -348,6 +346,17 @@ def delete_factoid(bot, trigger):
     bot.say("Okay, %s, forgot that %s %s %s" % (trigger.nick, fact, verb, tidbit))
 
 
+@rule('$nick' 'annihilate item (.*)')
+def destroy_item(bot, trigger):
+    bucket_runtime_data.inhibit_reply = trigger
+    if not trigger.admin:
+        return
+    if bucket_runtime_data.inventory.destroy(trigger.group(1), bot):
+        bot.reply('Okay, %s, destroyed %s' % (trigger.nick, trigger.group(1)))
+    else:
+        bot.reply('I don\'t know what that item is')
+
+
 @rule('$nick' 'undo last')
 @priority('high')
 def undo_teach(bot, trigger):
@@ -414,7 +423,7 @@ def inv_give(bot, trigger):
         item = re.sub(r'^(his|her|its|their) ', '%s\'s ' % trigger.nick, item, re.IGNORECASE)
 
     item = item.strip()
-    dropped = inventory.add(item, trigger.nick, trigger.sender, bot)
+    dropped = inventory.add(item.strip(), trigger.nick, trigger.sender, bot)
     db = connect_db(bot)
     cur = db.cursor()
     search_term = ''
@@ -673,12 +682,12 @@ def tidbit_vars(tidbit, trigger, random_item=True):
 
 def dont_know(bot, trigger):
     ''' Get a Don't Know reply from the cache '''
-    cache = bucket_runtime_data.dont_know_cache
-    try:
-        reply = cache[randint(0, len(cache) - 1)]
-    except ValueError:
-        rebuild_dont_know_cache(bot)
-        return dont_know(bot, trigger)
+    db = connect_db(bot)
+    cur = db.cursor()
+    cur.execute('SELECT * FROM bucket_facts WHERE fact = "Don\'t Know";')
+    results = cur.fetchall()
+    db.close()
+    reply = results[randint(0, len(results) - 1)]
     fact, tidbit, verb = parse_factoid(reply)
     tidbit = tidbit_vars(tidbit, trigger, True)
     say_factoid(bot, fact, verb, tidbit, True)
