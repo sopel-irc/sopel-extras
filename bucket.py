@@ -384,8 +384,9 @@ def undo_teach(bot, trigger):
     del last_teach[trigger.sender]
 
 
-@rule('((^\001ACTION (gives|hands) $nickname)|^$nickname. (take|have) (this|my|your|.*)) (.*)')
+@rule('((^\001ACTION (gives|hands|throws|serves) $nickname)|^$nickname..(take|have) (this|my|your|.*)) (.*)')
 @rule('^\001ACTION puts (.*) in $nickname')
+@rule('^\001ACTION (?:gives|hands|serves) (.*) to $nickname')
 @priority('medium')
 def inv_give(bot, trigger):
     ''' Called when someone gives us an item '''
