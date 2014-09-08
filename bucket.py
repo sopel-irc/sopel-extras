@@ -654,7 +654,7 @@ def tidbit_vars(tidbit, trigger, random_item=True):
         nick = trigger.nick
     except AttributeError:
         nick = trigger
-    tidbit = tidbit.replace('$who', trigger.nick)
+    tidbit = tidbit.replace('$who', nick)
     finaltidbit = ''
     for word in tidbit.split(' '):
         if '$giveitem' in word.lower():
@@ -727,15 +727,17 @@ def parse_factoid(result):
     return result[1], result[2], result[3]
 
 
-@interval(1 * 60 * 60)
+@interval(60*60)
 def too_quiet(bot):
     ''' Say something if nobody said anything for three hours '''
-    for channel, time in bucket_runtime_data.last_said.iteritems():
-        if time.time() > time + (2 * 60 * 60) and channel not in bucket_runtime_data.shut_up:
+    for channel, last_time in bucket_runtime_data.last_said.iteritems():
+        if time.time() > last_time + (2 * 60 * 60) and channel not in bucket_runtime_data.shut_up:
+            if randint(0, 1) == 1:
+                continue
             db = connect_db(bot)
             try:
                 cur = db.cursor()
-                cur.execute('SELECT * FROM bucket_facts ORDER BY RAND() LIMIT 1')
+                cur.execute('SELECT * FROM bucket_facts WHERE fact NOT LIKE "%quotes%" ORDER BY RAND() LIMIT 1')
                 results = cur.fetchall()
                 result = pick_result(results, bot)
                 fact, tidbit, verb = parse_factoid(result)
