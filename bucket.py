@@ -731,7 +731,7 @@ def parse_factoid(result):
 def too_quiet(bot):
     ''' Say something if nobody said anything for three hours '''
     for channel, last_time in bucket_runtime_data.last_said.iteritems():
-        if time.time() > last_time + (2 * 60 * 60) and channel not in bucket_runtime_data.shut_up:
+        if time.time() > last_time + (3 * 60 * 60) and channel not in bucket_runtime_data.shut_up:
             if randint(0, 1) == 1:
                 continue
             db = connect_db(bot)
