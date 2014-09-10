@@ -90,13 +90,13 @@ def gettweet(sopel, trigger, found_match=None):
                 status = api.user_timeline(twituser)[statusnum]
         twituser = '@' + status.user.screen_name
         try:
-            for url in status.entities['urls']:
-                status.text = status.text.replace(url['url'], url['expanded_url'])
+            for media in status.entities['media']:
+                status.text = status.text.replace(media['url'], media['media_url'])
         except KeyError:
             pass
         try:
-            for media in status.entities['media']:
-                status.text = status.text.replace(media['url'], media['media_url'])
+            for url in status.entities['urls']:
+                status.text = status.text.replace(url['url'], url['expanded_url'])
         except KeyError:
             pass
         sopel.say(twituser + ": " + str(status.text) + ' <' + tweet_url(status) + '>')
