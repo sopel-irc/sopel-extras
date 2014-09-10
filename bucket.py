@@ -2,7 +2,7 @@
 """
 bucket.py - willie module to emulate the behavior of #xkcd's Bucket bot
 Copyright 2012, Edward Powell, http://embolalia.net
-Copyright © 2012, Elad Alfassa <elad@fedoraproject.org>
+Copyright © 2012-2014, Elad Alfassa <elad@fedoraproject.org>
 Licensed under the Eiffel Forum License 2.
 
 https://github.com/embolalia/willie
@@ -65,17 +65,17 @@ def configure(config):
                                  passwd=config.bucket.db_pass,
                                  db=config.bucket.db_name)
             cur = db.cursor()
-            #Create facts table
+            # Create facts table
             cur.execute("CREATE TABLE IF NOT EXISTS `bucket_facts` (`id` int(10) unsigned NOT NULL AUTO_INCREMENT,`fact` varchar(128) COLLATE utf8_unicode_ci NOT NULL,`tidbit` text COLLATE utf8_unicode_ci NOT NULL,`verb` varchar(16) CHARACTER SET latin1 NOT NULL DEFAULT 'is',`RE` tinyint(1) NOT NULL,`protected` tinyint(1) NOT NULL,`mood` tinyint(3) unsigned DEFAULT NULL,`chance` tinyint(3) unsigned DEFAULT NULL,PRIMARY KEY (`id`),UNIQUE KEY `fact` (`fact`,`tidbit`(200),`verb`),KEY `trigger` (`fact`),KEY `RE` (`RE`)) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;")
-            #Create inventory table
+            # Create inventory table
             cur.execute("CREATE TABLE IF NOT EXISTS `bucket_items` (`id` int(10) unsigned NOT NULL auto_increment,`channel` varchar(64) NOT NULL,`what` varchar(255) NOT NULL,`user` varchar(64) NOT NULL,PRIMARY KEY (`id`),UNIQUE KEY `what` (`what`),KEY `from` (`user`),KEY `where` (`channel`)) ENGINE=MyISAM DEFAULT CHARSET=latin1 ;")
-            #Insert a Don't Know factiod
+            # Insert a Don't Know factiod
             cur.execute('INSERT INTO bucket_facts (`fact`, `tidbit`, `verb`, `RE`, `protected`, `mood`, `chance`) VALUES (%s, %s, %s, %s, %s, %s, %s);', ('Don\'t Know', '++?????++ Out of Cheese Error. Redo From Start.', '<reply>', False, False, None, None))
-            #Insert a pickup full factiod
+            # Insert a pickup full factiod
             cur.execute('INSERT INTO bucket_facts (`fact`, `tidbit`, `verb`, `RE`, `protected`, `mood`, `chance`) VALUES (%s, %s, %s, %s, %s, %s, %s);', ('pickup full', 'takes $item but drops $giveitem', '<action>', False, False, None, None))
-            #Insert a duplicate item factiod
+            # Insert a duplicate item factiod
             cur.execute('INSERT INTO bucket_facts (`fact`, `tidbit`, `verb`, `RE`, `protected`, `mood`, `chance`) VALUES (%s, %s, %s, %s, %s, %s, %s);', ('duplicate item', 'No thanks, I\'ve already got $item', '<reply>', False, False, None, None))
-            #Insert a take item factiod
+            # Insert a take item factiod
             cur.execute('INSERT INTO bucket_facts (`fact`, `tidbit`, `verb`, `RE`, `protected`, `mood`, `chance`) VALUES (%s, %s, %s, %s, %s, %s, %s);', ('takes item', 'Oh, thanks, I\'ll keep this $item safe', '<reply>', False, False, None, None))
             db.commit()
             db.close()
@@ -144,7 +144,7 @@ class Inventory():
         return item
 
     def remove(self, item):
-        ''' Attemt to remove an item from the inventory, returns False if failed '''
+        ''' Remove an item from the inventory, returns False if failed '''
         try:
             self.current_items.remove(item)
             return True
@@ -159,20 +159,24 @@ class Inventory():
         self.avilable_items.remove(item)  # remove it from the cache
         db = connect_db(bot)
         cur = db.cursor()
-        cur.execute('DELETE FROM bucket_items WHERE what=%s;', (item.encode('utf8')))
+        cur.execute('DELETE FROM bucket_items WHERE what=%s',
+                    (item.encode('utf8')))
         db.close()
         return True
 
 
 class bucket_runtime_data():
-    dont_know_cache = []  # Caching all the Don't Know factoids to reduce amount of DB reads
-    what_was_that = {}  # Remembering info of last DB read, per channel. for use with the "what was that" command.
+    what_was_that = {}  # Remembering info of last DB read, per channel.
     inhibit_reply = ''  # Used to inhibit reply of an error message after teaching a factoid
     last_teach = {}
     last_lines = Ddict(dict)  # For quotes.
     inventory = None
     shut_up = []
-    special_verbs = ['<reply>', '<directreply>', '<directaction>', '<action>', '<alias>']
+    special_verbs = ['<reply>',
+                     '<directreply>',
+                     '<directaction>',
+                     '<action>',
+                     '<alias>']
     factoid_search_re = re.compile('(.*).~=./(.*)/')
     last_said = {}
 
@@ -193,7 +197,7 @@ def setup(bot):
         return
     bucket_runtime_data.inventory = Inventory()
     cur = db.cursor()
-    cur.execute('SELECT * FROM bucket_items;')
+    cur.execute('SELECT * FROM bucket_items')
     items = cur.fetchall()
     db.close()
     for item in items:
@@ -207,7 +211,7 @@ def add_fact(bot, trigger, fact, tidbit, verb, re, protected, mood, chance, say=
     db = connect_db(bot)
     cur = db.cursor()
     try:
-        cur.execute('INSERT INTO bucket_facts (`fact`, `tidbit`, `verb`, `RE`, `protected`, `mood`, `chance`) VALUES (%s, %s, %s, %s, %s, %s, %s);', (fact, tidbit, verb, re, protected, mood, chance))
+        cur.execute('INSERT INTO bucket_facts (`fact`, `tidbit`, `verb`, `RE`, `protected`, `mood`, `chance`) VALUES (%s, %s, %s, %s, %s, %s, %s)', (fact, tidbit, verb, re, protected, mood, chance))
         db.commit()
     except MySQLdb.IntegrityError:
         bot.say("I already had it that way!")
@@ -235,7 +239,7 @@ def teach_is_are(bot, trigger):
     chance = None
     for word in trigger.group(0).lower().split(' '):
         if word in bucket_runtime_data.special_verbs:
-            return  # do NOT teach is are if the trigger is similar to "Lemon, Who is the king of the derps? <reply> I am!" (contains both is|are and a special verb.
+            return
 
     add_fact(bot, trigger, fact, tidbit, verb, re, protected, mood, chance)
 
@@ -267,7 +271,7 @@ def teach_verb(bot, trigger):
     if verb == '<alias>':
         db = connect_db(bot)
         cur = db.cursor()
-        cur.execute('SELECT * FROM bucket_facts WHERE fact = %s;', [tidbit])
+        cur.execute('SELECT * FROM bucket_facts WHERE fact = %s', [tidbit])
         results = cur.fetchall()
         db.close()
         if len(results) == 0 and success:
@@ -324,7 +328,7 @@ def delete_factoid(bot, trigger):
     db = connect_db(bot)
     cur = db.cursor()
     try:
-        cur.execute('SELECT * FROM bucket_facts WHERE ID = %s;', [int(trigger.group(1))])
+        cur.execute('SELECT * FROM bucket_facts WHERE ID = %s', (int(trigger.group(1))))
         results = cur.fetchall()
         if len(results) > 1:
             bot.debug('bucket', 'More than one factoid with the same ID?', 'warning')
@@ -334,7 +338,7 @@ def delete_factoid(bot, trigger):
         elif len(results) == 0:
             bot.reply('No such factoid')
             return
-        cur.execute('DELETE FROM bucket_facts WHERE ID = %s', [int(trigger.group(1))])
+        cur.execute('DELETE FROM bucket_facts WHERE ID = %s', (int(trigger.group(1))))
         db.commit()
     except:
         bot.say("Delete failed! are you sure this is a valid factoid ID?")
@@ -382,7 +386,7 @@ def undo_teach(bot, trigger):
     db = connect_db(bot)
     cur = db.cursor()
     try:
-        cur.execute('DELETE FROM bucket_facts WHERE `fact` = %s AND `verb` = %s AND `tidbit` = %s', (fact, verb, tidbit))
+        cur.execute('DELETE FROM bucket_facts WHERE fact= %s AND verb=%s AND tidbit=%s', (fact, verb, tidbit))
         db.commit()
     except:
         bot.say("Undo failed, this shouldn't have happened!")
@@ -428,15 +432,15 @@ def inv_give(bot, trigger):
     cur = db.cursor()
     search_term = ''
     if not dropped:
-        #Query for 'takes item'
+        # Query for 'takes item'
         search_term = 'takes item'
     elif dropped == '%ERROR% duplicate item %ERROR%':
-        #Query for 'duplicate item'
+        # Query for 'duplicate item'
         search_term = 'duplicate item'
     else:
-        #Query for 'pickup full'
+        # Query for 'pickup full'
         search_term = 'pickup full'
-    cur.execute('SELECT * FROM bucket_facts WHERE fact = %s;', [search_term])
+    cur.execute('SELECT * FROM bucket_facts WHERE fact = %s', [search_term])
     results = cur.fetchall()
     db.close()
     result = pick_result(results, bot)
@@ -484,15 +488,17 @@ def say_fact(bot, trigger):
 
     if query.startswith('\001ACTION'):
         query = query[len('\001ACTION '):]
+
     addressed = query.lower().startswith(bot.nick.lower())  # Check if our nick was mentioned
-    search_term = query.lower().strip()  # What we are going to pass to MySql as our search term
+    search_term = query.lower().strip()
+
     if addressed:
         search_term = search_term[(len(bot.nick) + 1):].strip()  # Remove our nickname from the search term
     search_term = remove_punctuation(search_term).strip()
 
-    fact_length =  bot.config.bucket.fact_length or 6
+    fact_length = bot.config.bucket.fact_length or 6
     if len(query) < int(fact_length) and not addressed:
-        return # Ignore factoids shorter than configured or default 6 chars when not addresed
+        return  # Ignore factoids shorter than configured or default 6 chars when not addresed
     if addressed and len(search_term) is 0:
         return  # Ignore 0 length queries when addressed
     if search_term == 'don\'t know' and not addressed:
@@ -532,17 +538,16 @@ def say_fact(bot, trigger):
 
     db = connect_db(bot)
     cur = db.cursor()
-    if not addressed:
-        factoid_search = None
-    else:
+    factoid_search = None
+    if addressed:
         factoid_search = bucket_runtime_data.factoid_search_re.search(search_term)
     try:
         if search_term == 'random quote':
-            cur.execute('SELECT * FROM bucket_facts WHERE fact LIKE "% quotes" ORDER BY id ASC;')
+            cur.execute('SELECT * FROM bucket_facts WHERE fact LIKE "% quotes" ORDER BY id ASC')
         elif factoid_search is not None:
-            cur.execute('SELECT * FROM bucket_facts WHERE fact = %s AND tidbit LIKE %s ORDER BY id ASC;', (factoid_search.group(1), '%' + factoid_search.group(2) + '%'))
+            cur.execute('SELECT * FROM bucket_facts WHERE fact = %s AND tidbit LIKE %s ORDER BY id ASC', (factoid_search.group(1), '%' + factoid_search.group(2) + '%'))
         else:
-            cur.execute('SELECT * FROM bucket_facts WHERE fact = %s ORDER BY id ASC;', [search_term])
+            cur.execute('SELECT * FROM bucket_facts WHERE fact = %s ORDER BY id ASC', [search_term])
         results = cur.fetchall()
     except UnicodeEncodeError, e:
         bot.debug('bucket', 'Warning, database encoding error', 'warning')
@@ -594,7 +599,8 @@ def say_fact(bot, trigger):
                 literal_line = "#%d - %s %s %s" % (number, fact, verb, tidbit)
                 f.write(literal_line.encode('utf8') + '\n')
             f.close()
-            bot.reply('Here you go! %s (%d factoids)' % (bucket_literal_baseurl + web.quote(filename + '.txt'), len(results)))
+            link = bucket_literal_baseurl + web.quote(filename + '.txt')
+            bot.reply('Here you go! %s (%d factoids)' % (link, len(results)))
         result = 'Me giving you a literal link'
     else:
         say_factoid(bot, fact, verb, tidbit, addressed)
@@ -610,15 +616,17 @@ def pick_result(results, bot):
         elif len(results) == 0:
             return None
         if result[3] == '<alias>':
-            #Handle alias, recursive!
+            # Handle alias, recursive!
             db = connect_db(bot)
             cur = db.cursor()
             search_term = result[2].strip()
             try:
-                cur.execute('SELECT * FROM bucket_facts WHERE fact = %s;', [search_term])
+                cur.execute('SELECT * FROM bucket_facts WHERE fact = %s',
+                            (search_term))
                 results = cur.fetchall()
             except UnicodeEncodeError, e:
-                bot.debug('bucket', 'Warning, database encoding error', 'warning')
+                bot.debug('bucket', 'Warning, database encoding error',
+                          'warning')
                 bot.debug('bucket', e, 'warning')
             finally:
                 db.close()
@@ -658,7 +666,7 @@ def connect_db(bot):
 
 def tidbit_vars(tidbit, trigger, random_item=True):
     ''' Parse in-tidbit vars '''
-    #Special in-tidbit vars:
+    # Special in-tidbit vars:
     inventory = bucket_runtime_data.inventory
     try:
         nick = trigger.nick
@@ -668,7 +676,7 @@ def tidbit_vars(tidbit, trigger, random_item=True):
     finaltidbit = ''
     for word in tidbit.split(' '):
         if '$giveitem' in word.lower():
-            #we have to use replace here in case of punctuation
+            # we have to use replace here in case of punctuation
             word = word.replace('$giveitem', inventory.give_item())
         elif '$newitem' in word.lower():
             word = word.replace('$newitem', inventory.add_random())
@@ -684,7 +692,7 @@ def dont_know(bot, trigger):
     ''' Get a Don't Know reply from the cache '''
     db = connect_db(bot)
     cur = db.cursor()
-    cur.execute('SELECT * FROM bucket_facts WHERE fact = "Don\'t Know";')
+    cur.execute('SELECT * FROM bucket_facts WHERE fact = "Don\'t Know"')
     results = cur.fetchall()
     db.close()
     reply = results[randint(0, len(results) - 1)]
@@ -715,16 +723,16 @@ def say_factiod_to_channel(bot, fact, verb, tidbit, target):
     elif verb == '<action>':
         bot.msg(target, '\001ACTION %s\001' % tidbit)
 
+
 @rule('(.*)')
 @priority('medium')
 def remember(bot, trigger):
     ''' Remember last 10 lines of each user, to use in the quote function '''
     memory = bucket_runtime_data.last_lines
-    try:
-        fifo = deque(memory[trigger.sender][trigger.nick.lower()])
-    except KeyError:
-        memory[trigger.sender][trigger.nick.lower()] = []  # Initializing the array
-        return remember(bot, trigger)
+    nick = trigger.nick.lower()
+    if nick not in memory[trigger.sender]:
+        memory[trigger.sender][nick] = []
+    fifo = deque(memory[trigger.sender][nick])
     if len(fifo) == 10:
         fifo.pop()
     fifo.appendleft([trigger.group(0), trigger.nick])
@@ -737,26 +745,33 @@ def parse_factoid(result):
     return result[1], result[2], result[3]
 
 
-@interval(60*60)
+@interval(30*60)
 def too_quiet(bot):
-    ''' Say something if nobody said anything for three hours '''
+    ''' Say something if nobody said anything for four hours '''
+    # Add jitter
+    time.sleep(randint(25, 123))
     for channel, last_time in bucket_runtime_data.last_said.iteritems():
-        if time.time() > last_time + (3 * 60 * 60) and channel not in bucket_runtime_data.shut_up:
-            if randint(0, 1) == 1:
+        shut_up = bucket_runtime_data.shut_up
+        if time.time() > last_time + (4 * 60 * 60) and channel not in shut_up:
+            if randint(0, 2) == 1:
                 continue
             db = connect_db(bot)
             try:
                 cur = db.cursor()
-                cur.execute('SELECT * FROM bucket_facts WHERE fact NOT LIKE "%quotes%" ORDER BY RAND() LIMIT 1')
+                cur.execute('SELECT * FROM bucket_facts WHERE fact NOT LIKE' +
+                            '"%quotes%" ORDER BY RAND() LIMIT 1')
                 results = cur.fetchall()
                 result = pick_result(results, bot)
+                was[trigger.sender] = result
                 fact, tidbit, verb = parse_factoid(result)
                 tidbit = tidbit_vars(tidbit, 'god of time')
                 say_factiod_to_channel(bot, fact, verb, tidbit, channel)
                 bucket_runtime_data.last_said[channel] = time.time()
             finally:
                 db.close()
+            # more jitter, so we don't send messages to all channels at the
+            # same time:
+            time.sleep(randint(2, 11))
 
 if __name__ == '__main__':
     print __doc__.strip()
-
