@@ -178,6 +178,7 @@ class bucket_runtime_data():
                      '<action>',
                      '<alias>']
     factoid_search_re = re.compile('(.*).~=./(.*)/')
+    question_re = re.compile('^(how|who|why|which|what|whom|where|when) (is|are) .*\?$', re.IGNORECASE)
     last_said = {}
 
 
@@ -229,11 +230,8 @@ def add_fact(bot, trigger, fact, tidbit, verb, re, protected, mood, chance, say=
 def teach_is_are(bot, trigger):
     """Teaches a is b and a are b"""
     fact = trigger.group(1)
-    bucket_runtime_data.inhibit_reply = trigger
-    fact = remove_punctuation(fact)
     tidbit = trigger.group(3)
     verb = trigger.group(2)
-    re = False
     protected = False
     mood = None
     chance = None
@@ -241,8 +239,15 @@ def teach_is_are(bot, trigger):
         if word in bucket_runtime_data.special_verbs:
             return
 
-    add_fact(bot, trigger, fact, tidbit, verb, re, protected, mood, chance)
+    question = bucket_runtime_data.question_re.match('%s %s %s' % (fact,
+                                                                   verb,
+                                                                   tidbit))
+    if question is not None:
+        return  # Don't teach, someone is asking as a question
 
+    fact = remove_punctuation(fact)
+    add_fact(bot, trigger, fact, tidbit, verb, False, protected, mood, chance)
+    bucket_runtime_data.inhibit_reply = trigger
 
 @rule('$nick' '(.*?) (<\S+>) (.*)')
 @priority('high')
