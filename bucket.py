@@ -23,13 +23,14 @@ and make sure the priority of your callable is medium or higher.
 import MySQLdb
 import re
 from re import sub
-from random import randint, seed
+from random import randint, random, seed
 import willie.web as web
 import os
 from collections import deque
 from willie.tools import Ddict
 from willie.module import *
 import time
+import warnings
 seed()
 
 
@@ -180,6 +181,7 @@ class bucket_runtime_data():
     factoid_search_re = re.compile('(.*).~=./(.*)/')
     question_re = re.compile('^(how|who|why|which|what|whom|where|when) (is|are) .*\?$', re.IGNORECASE)
     last_said = {}
+    cached_friends = []
 
 
 def remove_punctuation(string):
@@ -200,15 +202,25 @@ def setup(bot):
     cur = db.cursor()
     cur.execute('SELECT * FROM bucket_items')
     items = cur.fetchall()
-    db.close()
     for item in items:
         bucket_runtime_data.inventory.avilable_items.append(item[2])
+
+    # Create friends table if it doesn't exist
+    warnings.filterwarnings('ignore')
+    cur.execute("""CREATE TABLE IF NOT EXISTS bucket_friends (
+                `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+                `nick` varchar(64) NOT NULL,
+                `friendly` int(10) NOT NULL default 0,
+                `lastseen` int(10) unsigned NOT NULL,
+                UNIQUE KEY (`id`),
+                UNIQUE KEY (`nick`),
+                PRIMARY KEY (`id`))""")
+    warnings.filterwarnings('default')
+    db.close()
     print 'Done setting up Bucket!'
 
 
 def add_fact(bot, trigger, fact, tidbit, verb, re, protected, mood, chance, say=True):
-    db = None
-    cur = None
     db = connect_db(bot)
     cur = db.cursor()
     try:
@@ -248,6 +260,8 @@ def teach_is_are(bot, trigger):
     fact = remove_punctuation(fact)
     add_fact(bot, trigger, fact, tidbit, verb, False, protected, mood, chance)
     bucket_runtime_data.inhibit_reply = trigger
+    _friend_increase(bot, trigger)
+
 
 @rule('$nick' '(.*?) (<\S+>) (.*)')
 @priority('high')
@@ -283,6 +297,7 @@ def teach_verb(bot, trigger):
             bot.say('Okay, %s. but, FYI, %s doesn\'t exist yet' % (trigger.nick, tidbit))
         if len(results) > 0 and success:
             bot.say('Okay, %s' % trigger.nick)
+    _friend_increase(bot, trigger)
 
 
 @rule('$nick' 'remember (.*?) (.*)')
@@ -317,6 +332,7 @@ def save_quote(bot, trigger):
                 bot.reply("Remembered that %s <reply> %s" % (fact, tidbit))
             return
     bot.say("Sorry, I don't remember what %s said about %s" % (quotee, word))
+    _friend_increase(bot, trigger)
 
 
 @rule('$nick' 'delete #(.*)')
@@ -455,10 +471,12 @@ def inv_give(bot, trigger):
 
     say_factoid(bot, fact, verb, tidbit, True)
     was = result
+    _friend_increase(bot, trigger)
     return
 
 
 @rule('^\001ACTION (steals|takes) $nickname\'s (.*)')
+@rule('^\001ACTION (steals|takes) (.*) from $nickname')
 @priority('medium')
 def inv_steal(bot, trigger):
     inventory = bucket_runtime_data.inventory
@@ -470,6 +488,7 @@ def inv_steal(bot, trigger):
         bot.say('Hey! Give it back, it\'s mine!')
     else:
         bot.say('But I don\'t have any %s' % item)
+    _friend_decrease(bot, trigger)
 
 
 @rule('$nick' 'you need new things(.*|)')
@@ -513,6 +532,7 @@ def say_fact(bot, trigger):
     if search_term == 'shut up' and addressed:
         bot.reply('Okay...')
         bucket_runtime_data.shut_up.append(trigger.sender)
+        _friend_decrease(bot, trigger)
         return
     elif search_term in ['come back', 'unshutup', 'get your sorry ass back here'] and addressed:
         if trigger.sender in bucket_runtime_data.shut_up:
@@ -546,6 +566,7 @@ def say_fact(bot, trigger):
     factoid_search = None
     if addressed:
         factoid_search = bucket_runtime_data.factoid_search_re.search(search_term)
+        _friend_increase(bot, trigger)
     try:
         if search_term == 'random quote':
             cur.execute('SELECT * FROM bucket_facts WHERE fact LIKE "% quotes" ORDER BY id ASC')
@@ -732,22 +753,107 @@ def say_factiod_to_channel(bot, fact, verb, tidbit, target):
 @rule('(.*)')
 @priority('medium')
 def remember(bot, trigger):
-    ''' Remember last 10 lines of each user, to use in the quote function '''
+    ''' Remember last 15 lines of each user, to use in the quote function '''
     memory = bucket_runtime_data.last_lines
     nick = trigger.nick.lower()
     if nick not in memory[trigger.sender]:
         memory[trigger.sender][nick] = []
     fifo = deque(memory[trigger.sender][nick])
-    if len(fifo) == 10:
+    if len(fifo) == 15:
         fifo.pop()
     fifo.appendleft([trigger.group(0), trigger.nick])
     memory[trigger.sender][trigger.nick.lower()] = fifo
     if not trigger.sender.is_nick():
         bucket_runtime_data.last_said[trigger.sender] = time.time()
+    _add_friend(bot, trigger)
 
 
 def parse_factoid(result):
     return result[1], result[2], result[3]
+
+
+@willie.module.rule('.*')
+@willie.module.event('JOIN')
+def handle_join(bot, trigger):
+    if trigger.nick == bot.nick:
+        return
+    ret = _get_friendly(bot, trigger.nick)
+    if ret is None:
+        return _add_friend(bot, trigger)
+    friendly, lastseen = ret
+    if time.time() > lastseen + (15*60):
+        greet = randint(1, 2+friendly**3)
+        time.sleep(randint(1, 5) + random())  # Jitter to appear human
+        if greet > 24:
+            db = connect_db(bot)
+            cur = db.cursor()
+            cur.execute('SELECT * FROM bucket_facts WHERE fact = "greet on join"')
+            results = cur.fetchall()
+            db.close()
+            result = pick_result(results, bot)
+            fact, tidbit, verb = parse_factoid(result)
+            tidbit = tidbit_vars(tidbit, trigger)
+            say_factoid(bot, fact, verb, tidbit, True)
+            was = result
+    _add_friend(bot, trigger)
+
+
+@willie.module.rule('.*')
+@willie.module.event('PART')
+def handle_part(bot, trigger):
+    if trigger.nick != bot.nick:
+        _add_friend(bot, trigger)
+
+
+def _add_friend(bot, trigger):
+    ''' Add a new "friend" to the db or updates their lastseen  time '''
+    friend = trigger.nick.lower()
+    db = connect_db(bot)
+    cursor = db.cursor()
+    if friend not in bucket_runtime_data.cached_friends:
+        # New person
+        try:
+            cursor.execute('INSERT INTO bucket_friends (`nick`, `lastseen`) VALUES (%s, %s)', (friend, int(time.time())))
+        except MySQLdb.IntegrityError:
+            pass  # nick already in db
+        bucket_runtime_data.cached_friends.append(friend)
+    cursor.execute('UPDATE bucket_friends SET lastseen=%s WHERE nick=%s', (int(time.time()), friend))
+    db.commit()
+    db.close()
+
+
+def _friend_modify(bot, trigger, increment):
+    friend = trigger.nick.lower()
+    if friend not in bucket_runtime_data.cached_friends:
+        _add_friend(bot, trigger)
+    db = connect_db(bot)
+    cursor = db.cursor()
+    cursor.execute('SELECT friendly FROM bucket_friends WHERE nick=%s', (friend))
+    friendly = cursor.fetchone()
+    friendly = friendly[0] + increment
+    # Guard against mysql maxint errors
+    if friendly < 2147483647 and friendly > -2147483648:
+        cursor.execute('UPDATE bucket_friends SET friendly=%s WHERE nick=%s', (int(friendly), friend))
+    db.commit()
+    db.close()
+
+
+def _friend_decrease(bot, trigger):
+    _friend_modify(bot, trigger, -1)
+
+
+def _friend_increase(bot, trigger):
+    _friend_modify(bot, trigger, 1)
+
+
+def _get_friendly(bot, nick):
+    nick = nick.lower()
+    db = connect_db(bot)
+    cursor = db.cursor()
+    cursor.execute('SELECT friendly, lastseen FROM bucket_friends WHERE nick=%s', (nick))
+    friendly = cursor.fetchone()
+    db.close()
+    return friendly
 
 
 @interval(30*60)
