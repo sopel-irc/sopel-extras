@@ -12,6 +12,9 @@ import re
 from willie.config import ConfigurationError
 from willie import tools
 from willie.module import rule
+import sys
+if sys.version_info.major < 3:
+    str = unicode
 
 def configure(config):
     """
@@ -77,7 +80,7 @@ def gettweet(willie, trigger, found_match=None):
                     statusnum = int(parts[1]) - 1
                 status = api.user_timeline(twituser)[statusnum]
         twituser = '@' + status.user.screen_name
-        willie.say(twituser + ": " + unicode(status.text) + ' <' + tweet_url(status) + '>')
+        willie.say(twituser + ": " + str(status.text) + ' <' + tweet_url(status) + '>')
     except:
         willie.reply("You have inputted an invalid user.")
 gettweet.commands = ['twit']
