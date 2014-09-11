@@ -448,19 +448,27 @@ def inv_give(bot, trigger):
         item = re.sub(r'^(his|her|its|their) ', '%s\'s ' % trigger.nick, item, re.IGNORECASE)
 
     item = item.strip()
-    dropped = inventory.add(item.strip(), trigger.nick, trigger.sender, bot)
+    friendly = _get_friendly(bot, trigger.nick)
+    if friendly is not None:
+        friendly = friendly[0]
+    else:
+        friendly = 0
     db = connect_db(bot)
     cur = db.cursor()
     search_term = ''
-    if not dropped:
-        # Query for 'takes item'
-        search_term = 'takes item'
-    elif dropped == '%ERROR% duplicate item %ERROR%':
-        # Query for 'duplicate item'
-        search_term = 'duplicate item'
+    if friendly < -3 and randint(0, 2) > 0:
+        search_term = 'refuse to take item'
     else:
-        # Query for 'pickup full'
-        search_term = 'pickup full'
+        dropped = inventory.add(item.strip(), trigger.nick, trigger.sender, bot)
+        if not dropped:
+            # Query for 'takes item'
+            search_term = 'takes item'
+        elif dropped == '%ERROR% duplicate item %ERROR%':
+            # Query for 'duplicate item'
+            search_term = 'duplicate item'
+        else:
+            # Query for 'pickup full'
+            search_term = 'pickup full'
     cur.execute('SELECT * FROM bucket_facts WHERE fact = %s', [search_term])
     results = cur.fetchall()
     db.close()
@@ -471,7 +479,8 @@ def inv_give(bot, trigger):
 
     say_factoid(bot, fact, verb, tidbit, True)
     was = result
-    _friend_increase(bot, trigger)
+    if search_term != 'refuse to take item':
+        _friend_increase(bot, trigger)
     return
 
 
