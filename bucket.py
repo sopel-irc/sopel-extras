@@ -782,9 +782,9 @@ def handle_join(bot, trigger):
         return _add_friend(bot, trigger)
     friendly, lastseen = ret
     if time.time() > lastseen + (15*60):
-        greet = randint(1, 2+friendly**3)
+        greet = 25+(((friendly*5)/25)**3)
         time.sleep(randint(1, 5) + random())  # Jitter to appear human
-        if greet > 24:
+        if randint(0, 100) < greet:
             db = connect_db(bot)
             cur = db.cursor()
             cur.execute('SELECT * FROM bucket_facts WHERE fact = "greet on join"')
