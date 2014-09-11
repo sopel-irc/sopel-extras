@@ -522,11 +522,16 @@ def say_fact(bot, trigger):
     if query.startswith('\001ACTION'):
         query = query[len('\001ACTION '):]
 
-    addressed = query.lower().startswith(bot.nick.lower())  # Check if our nick was mentioned
+    # Check if our nick was mentioned
+    addressed = query.lower().startswith(bot.nick.lower())
+    addressed |= query.lower().endswith(bot.nick.lower())
     search_term = query.lower().strip()
 
-    if addressed:
-        search_term = search_term[(len(bot.nick) + 1):].strip()  # Remove our nickname from the search term
+    # Remove our nickname from the search term
+    if search_term.startswith(bot.nick.lower()):
+        search_term = search_term[(len(bot.nick) + 1):].strip()
+    elif search_term.endswith(bot.nick.lower()):
+        search_term = search_term[:-len(bot.nick)].strip()
     search_term = remove_punctuation(search_term).strip()
 
     fact_length = bot.config.bucket.fact_length or 6
