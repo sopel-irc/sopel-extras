@@ -643,6 +643,7 @@ def say_fact(bot, trigger):
 
 
 def pick_result(results, bot):
+    search_term = ''
     try:
         if len(results) == 1:
             result = results[0]
@@ -670,6 +671,7 @@ def pick_result(results, bot):
     except RuntimeError, e:
         bot.debug('bucket', 'RutimeError in pick_result', 'warning')
         bot.debug('bucket', e, 'warning')
+        bot.debug('bucket', 'search term was: %s' % search_term 'warning')
         return None
 
 
