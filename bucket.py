@@ -84,19 +84,16 @@ def configure(config):
 
 class Inventory():
     ''' Everything inventory related '''
-    avilable_items = []
-    current_items = deque([])
+    available_items = set()
+    current_items = deque()
 
     def add_random(self):
         ''' Adds a random item to the inventory'''
-        item = self.avilable_items[randint(0, len(self.avilable_items) - 1)].strip()
-        if item in self.current_items:
-            try:
-                return self.add_random()
-            except RuntimeError:
-                #Too much recursion, this can only mean all avilable_items are in current_items. Bananas.
-                self.current_items.appendleft('bananas!')
-                return 'bananas!'
+        not_in_inv = list(self.available_items - set(self.current_items))
+        if len(not_in_inv) > 0:
+            item = not_in_inv[randint(0, len(not_in_inv) - 1)].strip()
+        else:
+            item = "bananas!"
         self.current_items.appendleft(item)
         return item
 
@@ -104,7 +101,7 @@ class Inventory():
         ''' Adds an item to the inventory'''
         dropped = False
         item = item.strip()
-        if item.lower() not in [x.lower() for x in self.avilable_items]:
+        if item.lower() not in [x.lower() for x in self.available_items]:
             db = connect_db(bot)
             cur = db.cursor()
             try:
@@ -114,7 +111,7 @@ class Inventory():
                 bot.debug('bucket', str(e), 'warning')
             db.commit()
             db.close()
-            self.avilable_items.append(item)
+            self.available_items.add(item)
         if item in self.current_items:
             return '%ERROR% duplicate item %ERROR%'
         if len(self.current_items) >= int(bot.config.bucket.inv_size):
@@ -131,7 +128,7 @@ class Inventory():
 
     def populate(self, bot):
         ''' Clears the inventory and fill it with random items '''
-        self.current_items = deque([])
+        self.current_items.clear()
         while (len(self.current_items) < int(bot.config.bucket.inv_size)):
             self.add_random()
 
@@ -154,10 +151,10 @@ class Inventory():
 
     def destroy(self, item, bot):
         ''' Deletes an item from the database '''
-        if item not in self.avilable_items:
+        if item not in self.available_items:
             return False
         self.remove(item)  # First, remove it from the inventory if present
-        self.avilable_items.remove(item)  # remove it from the cache
+        self.available_items.remove(item)  # remove it from the cache
         db = connect_db(bot)
         cur = db.cursor()
         cur.execute('DELETE FROM bucket_items WHERE what=%s',
@@ -203,7 +200,7 @@ def setup(bot):
     cur.execute('SELECT * FROM bucket_items')
     items = cur.fetchall()
     for item in items:
-        bucket_runtime_data.inventory.avilable_items.append(item[2])
+        bucket_runtime_data.inventory.available_items.add(item[2])
 
     # Create friends table if it doesn't exist
     warnings.filterwarnings('ignore')
