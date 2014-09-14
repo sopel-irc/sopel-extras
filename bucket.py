@@ -5,6 +5,19 @@ Copyright 2012, Edward Powell, http://embolalia.net
 Copyright © 2012-2014, Elad Alfassa <elad@fedoraproject.org>
 Licensed under the Eiffel Forum License 2.
 
+----------
+This code is terrible and horrid.
+
+
+This module is dead, and is not maintained.
+It has many issues, but nobody is going to fix any of them.
+Before using it make sure you fully understand that.
+
+Pull requests for bucket are unlikely to be reviewed.
+
+Proceed on your own risk.
+----------
+
 https://github.com/embolalia/willie
 
 This module is built without using code from the original bucket, but using the same DB table format for factoids.
@@ -51,7 +64,7 @@ def configure(config):
     | inv_size | 15 | The maximum amount of items that Willie can keep. |
     | fact_length | 6 | Minimum length of a factoid without being address |
     """
-    if config.option('Configure Bucket factiod DB', False):
+    if config.option('Configure Bucket (not recommended)', False):
         config.interactive_add('bucket', 'db_host', "Enter the MySQL hostname", 'localhost')
         config.interactive_add('bucket', 'db_user', "Enter the MySQL username")
         config.interactive_add('bucket', 'db_pass', "Enter the user's password")
