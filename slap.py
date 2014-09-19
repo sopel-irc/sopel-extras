@@ -16,9 +16,12 @@ def slap(willie, trigger):
     text = trigger.group().split()
     if len(text) < 2 or text[1].startswith('#'):
         return
-    if Nick(text[1]) not in willie.privileges[trigger.sender.lower()]:
-        willie.say("You can't slap someone who isn't here!")
-        return
+    try:
+        if Nick(text[1]) not in willie.privileges[trigger.sender.lower()]:
+            willie.say("You can't slap someone who isn't here!")
+            return
+    except KeyError:
+        pass
     if text[1] == willie.nick:
         if (trigger.nick not in willie.config.admins):
             text[1] = trigger.nick
