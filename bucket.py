@@ -803,24 +803,6 @@ def parse_factoid(result):
 def handle_join(bot, trigger):
     if trigger.nick == bot.nick:
         return
-    ret = _get_friendly(bot, trigger.nick)
-    if ret is None:
-        return _add_friend(bot, trigger)
-    friendly, lastseen = ret
-    if time.time() > lastseen + (15*60):
-        greet = 25+(((friendly*5)/25)**3)
-        time.sleep(randint(1, 5) + random())  # Jitter to appear human
-        if randint(0, 100) < greet:
-            db = connect_db(bot)
-            cur = db.cursor()
-            cur.execute('SELECT * FROM bucket_facts WHERE fact = "greet on join"')
-            results = cur.fetchall()
-            db.close()
-            result = pick_result(results, bot)
-            fact, tidbit, verb = parse_factoid(result)
-            tidbit = tidbit_vars(tidbit, trigger)
-            say_factoid(bot, fact, verb, tidbit, True)
-            was = result
     _add_friend(bot, trigger)
 
 
