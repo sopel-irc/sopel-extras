@@ -53,7 +53,7 @@ def configure(config):
     """
 
     if config.option('Configure Imgur? (You will need to register at https://api.imgur.com/oauth2/addclient)', False):
-        config.interactive.add('imgur', 'client_id', 'Client ID')
+        config.interactive_add('imgur', 'client_id', 'Client ID')
 
 def setup(bot):
     """
