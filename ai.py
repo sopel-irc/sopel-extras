@@ -158,8 +158,8 @@ def f_really(bot, trigger):
 
 @rule('^\s*[Ww]([Bb]|elcome\s*back)[\s:,].*$nickname')
 def wb(bot, trigger):
-    str1 = ['Thank you', 'thanks']
-    str2 = ['!', ':)', ':D']
+    set1 = ['Thank you', 'thanks']
+    set2 = ['!', ':)', ':D']
     respond = [ str1 + ' ' + str2 for str1 in set1 for str2 in set2]
     randtime = random.uniform(0, 7)
     time.sleep(randtime)
