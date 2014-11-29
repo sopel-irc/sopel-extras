@@ -126,19 +126,19 @@ def process_urls(bot, trigger, urls):
                                                   trigger.sender, timestamp)
                 else:
                     timestamp += 'Z'
+                status = timestamp
             except KeyError:
-                timestamp = 'no timestamp in %s' % json.loads(resp)
+                status = 'no timestamp in %s' % json.loads(resp)
             except ValueError as e:
                 if 'JSON' in str(e):
-                    timestamp = u'cannot parse JSON response: %s' % resp.decode('utf-8', 'ignore')
+                    status = u'cannot parse JSON response: %s' % resp.decode('utf-8', 'ignore')
                 else:
                     raise
-            message = '[ %s ] - %s (%s)' % (title, domain, timestamp)
+            message = '[ %s ] - %s (%s)' % (title, domain, status)
             # Guard against responding to other instances of this bot.
             if message != trigger:
                 bot.say(message)
 
-    
 def api_bmark(bot, trigger, found_match=None):
     match = trigger or found_match
     bytes = web.get(match)
