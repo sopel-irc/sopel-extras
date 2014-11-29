@@ -20,12 +20,26 @@ import re
 import requests
 import sys
 
+if sys.version_info.major < 3:
+    import urlparse
+    urlparse = urlparse.urlparse
+else:
+    import urllibe
+    urlparse = urllib.parse.urlparse
+
+
 # we match all URLs to override the builtin url.py module
 regex = re.compile('.*')
 
 # an HTML tag. cargo-culted from etymology.py
 r_tag = re.compile(r'<[^>]+>')
 r_whitespace = re.compile(r'[\t\r\n ]+')
+
+api_url = None
+api_user = None
+api_key = None
+api_suffix = '/api/v1/'
+private = None
 
 def text(html):
     html = r_tag.sub('', html)
@@ -44,32 +58,43 @@ def configure(config):
             'bookie',
             'api_url',
             'URL of the Bookie API',
-            'https://bookie.io/api/v1')
-        config.interactive_add(
-            'bookie',
-            'api_user',
-            'Username on the Bookie site',
-            getpass.getuser())
-        config.interactive_add(
-            'bookie',
-            'api_key',
-            'API key on the Bookie site',
-            None)
+            'https://bookie.io/api/v1/admin/account?api_key=XXXXXX')
         config.interactive_add(
             'bookie',
             'private',
             'Mark bookmarks as private',
             True)
 
-def setup(bot):
-    global url_finder, exclusion_char
+        if config.option('Would you like to configure individual accounts per channel?', False):
+            c = 'Enter the API URL as #channel:account'
+            config.add_list('bookie', 'url_per_channel', c, 'Channel:')
 
-    if not bot.config.bookie.api_user or not bot.config.bookie.api_key:
+def setup(bot):
+    global url_finder, exclusion_char, api_url, api_key, api_user
+
+    if bot.config.bookie.api_url:
+        try:
+            p = urlparse(bot.config.bookie.api_url)
+            # https
+            api_url = p.scheme + '://' + p.netloc
+            prefix = p.path.split(api_suffix)[0]
+            if prefix:
+                api_url += prefix
+            api_url += api_suffix
+            # the path element after api_suffix
+            api_user = p.path.split(api_suffix)[1].split('/')[0]
+            api_key = p.query.split('=')[1]
+        except Exception as e:
+            raise ConfigurationError('Bookie api_url badly formatted: %s' % str(e))
+    else:
         raise ConfigurationError('Bookie module not configured')
 
+    private = bot.config.bookie.private
     # deal with non-configured private setting
-    if bot.config.bookie.private is None:
-        bot.config.bookie.private = True
+    if private is None:
+        private = True
+    if (type(private) == str):
+        private = True if private == 'True' else False
 
     if bot.config.has_option('url', 'exclusion_char'):
         exclusion_char = bot.config.url.exclusion_char
@@ -161,16 +186,15 @@ def process_urls(bot, trigger, urls):
                 bot.say(message)
 
 def api_bmark(bot, trigger, found_match=None):
+    global api_url, api_user, api_key
     match = trigger or found_match
     bytes = web.get(match)
     # XXX: needs a patch to the URL module
     title = find_title(content=bytes)
-    api = '%s/%s/bmark?api_key=%s' % ( bot.config.bookie.api_url,
-                                       bot.config.bookie.api_user,
-                                       bot.config.bookie.api_key )
+    api = '%s/%s/bmark?api_key=%s' % ( api_url, api_user, api_key )
     if title:
         data = {u'url': match,
-                u'is_private': int(bot.config.bookie.private),
+                u'is_private': private,
                 u'description': title.encode('utf-8')}
         bot.debug('bookie', 'submitting %s with title %s to %s with data %s' % (match,
                                                                                 repr(title),
