@@ -148,8 +148,9 @@ def api_bmark(bot, trigger, found_match=None):
                                        bot.config.bookie.api_user,
                                        bot.config.bookie.api_key )
     if title:
-        bot.debug('bookie', 'submitting %s with title %s' % (match.encode('utf-8'),
-                                                             repr(title)), 'warning')
+        bot.debug('bookie', 'submitting %s with title %s to %s' % (match.encode('utf-8'),
+                                                                   repr(title),
+                                                                   api), 'warning')
         result = web.post(api, {u'url': match,
                                 u'is_private': False,
                                 u'description': title.encode('utf-8')})
