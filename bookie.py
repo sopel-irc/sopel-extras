@@ -17,6 +17,7 @@ try:
 except:
     pytz = None
 import re
+import requests
 import sys
 
 # we match all URLs to override the builtin url.py module
@@ -164,15 +165,15 @@ def api_bmark(bot, trigger, found_match=None):
                                        bot.config.bookie.api_user,
                                        bot.config.bookie.api_key )
     if title:
-        bot.debug('bookie', 'submitting %s with title %s to %s' % (match.encode('utf-8'),
-                                                                   repr(title),
-                                                                   api), 'warning')
-        # XXX: requires PR https://github.com/embolalia/willie/pull/670
-        (result, headers) = web.post(api, {u'url': match,
-                                           u'is_private': int(bot.config.bookie.private),
-                                           u'description': title.encode('utf-8')},
-                                     return_headers=True)
-        return (title, get_hostname(match), result, headers)
+        data = {u'url': match,
+                u'is_private': bot.config.bookie.private,
+                u'description': title.encode('utf-8')}
+        bot.debug('bookie', 'submitting %s with title %s to %s with data %s' % (match,
+                                                                                repr(title),
+                                                                                api, data), 'warning')
+        r = requests.post(api, data)
+        r.headers['_http_status'] = r.status_code
+        return (title, get_hostname(match), r.text, r.headers)
     else:
         bot.debug('bookie', 'no title found in %s' % match, 'warning')
 
