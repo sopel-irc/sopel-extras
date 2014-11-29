@@ -66,7 +66,11 @@ def setup(bot):
 
     if not bot.config.bookie.api_user or not bot.config.bookie.api_key:
         raise ConfigurationError('Bookie module not configured')
-     
+
+    # deal with non-configured private setting
+    if bot.config.bookie.private is None:
+        bot.config.bookie.private = True
+
     if bot.config.has_option('url', 'exclusion_char'):
         exclusion_char = bot.config.url.exclusion_char
 
