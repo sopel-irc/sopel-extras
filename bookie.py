@@ -63,6 +63,9 @@ api_suffix = '/api/v1/'
 api_private = None
 
 def text(html):
+    '''html to text dumb converter
+
+    cargo-culted from etymology.py'''
     html = r_tag.sub('', html)
     html = r_whitespace.sub(' ', html)
     return web.decode(html.strip())
@@ -71,6 +74,9 @@ def configure(config):
     """
     | [url] | example | purpose |
     | ---- | ------- | ------- |
+    | api_url | https://bookie.io/api/v1/admin/account?api_key=XXXXXX | template URL for the bookie instance |
+    | private | True | if bookmarks are private by default |
+    | url_per_channel | #channel:admin:XXXXXX:True | per-channel configuration |
     """
     if config.option('Configure Bookie?', False):
         if not config.has_section('bookie'):
@@ -91,6 +97,12 @@ def configure(config):
             config.add_list('bookie', 'url_per_channel', c, 'Channel:')
 
 def validate_private(private):
+    '''convert the private setting to a real bool
+
+    this is necessary because it could be the "true" string...
+
+    we consider every string but lower(true) to be false
+    '''
     # deal with non-configured private setting
     if private is None:
         private = True
@@ -103,15 +115,20 @@ def setup(bot):
 
     if bot.config.bookie.api_url:
         try:
+            # say we have "https://example.com/prefix/api/v1/admin/account?api_key=XXXXXX"
             p = urlparse(bot.config.bookie.api_url)
-            # https
+            # "https://example.com"
             api_url = p.scheme + '://' + p.netloc
+            # "/prefix"
             prefix = p.path.split(api_suffix)[0]
             if prefix:
                 api_url += prefix
+            # "/api/v1/"
             api_url += api_suffix
             # the path element after api_suffix
+            # that is, "admin"
             api_user = p.path.split(api_suffix)[1].split('/')[0]
+            # "XXXXXX"
             api_key = p.query.split('=')[1]
         except Exception as e:
             raise ConfigurationError('Bookie api_url badly formatted: %s' % str(e))
@@ -136,7 +153,9 @@ def shutdown(bot):
 @commands('bmark')
 @example('.bmark http://example.com', '[ Example ] - example.com')
 def bmark(bot, trigger):
+    # cargo-culted from url.py
     if not trigger.group(2):
+        # unsure what this does
         if trigger.sender not in bot.memory['last_seen_url']:
             return
         matched = check_callbacks(bot, trigger,
@@ -181,10 +200,13 @@ def process_urls(bot, trigger, urls):
             except:
                 pass
             bot.memory['last_seen_url'][trigger.sender] = url
+            # post the bookmark to the Bookie API
             (title, domain, resp, headers) = api_bmark(bot, trigger, url)
             if headers['_http_status'] != 200:
                 status = 'error from bookie API: %s' % text(resp.decode('utf-8', 'ignore'))
             else:
+                # try to show the user when the bookmark was posted,
+                # so they can tell if it's new
                 try:
                     # assumes that bookie's times are UTC
                     timestamp = datetime.strptime(json.loads(resp)['bmark']['stored'], '%Y-%m-%d %H:%M:%S')
@@ -197,6 +219,7 @@ def process_urls(bot, trigger, urls):
                         timestamp += 'Z'
                     status = 'posted on ' + timestamp
                 except KeyError:
+                    # the 'stored' field is not in the response?
                     status = 'no timestamp in %s' % json.loads(resp)
                 except ValueError as e:
                     if 'JSON' in str(e):
@@ -222,6 +245,8 @@ def api(bot, trigger, func, data=None):
             data['is_private'] = int(validate_private(match.group(3)))
     api = '%s%s/bmark?api_key=%s' % ( api_url, user, key )
     bot.debug('bookie', 'submitting to %s data %s' % (api, data), 'verbose')
+    # we use requests instead of web.post because Bookie expects
+    # JSON-encoded submissions, which web.post doesn't support
     r = requests.post(api, data)
     r.headers['_http_status'] = r.status_code
     bot.debug('bookie', 'response: %s (headers: %s, body: %s)' % (r, r.text, r.headers), 'verbose')
