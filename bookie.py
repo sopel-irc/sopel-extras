@@ -1,5 +1,7 @@
 # coding=utf8
 """bookie.py - Willie URL storage into bookie
+Copyright 2014, Antoine Beaupré <anarcat@debian.org>
+Licensed under the Eiffel Forum License 2.
 
 Missing:
 * add tags, extended descriptions options to .bmark
