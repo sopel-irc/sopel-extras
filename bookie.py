@@ -1,6 +1,15 @@
 # coding=utf8
-"""
-bookie.py - Willie URL storage into bookie
+"""bookie.py - Willie URL storage into bookie
+
+Missing:
+* add tags, extended descriptions options to .bmark
+* parse #tags on the auto url parser
+
+The above is annoyingly hard with regexes... but i've had good success
+with "non-hungry" patterns:
+
+>>> re.findall(r'(?u)(.*?)(!?(?:http|https|ftp)(?:://\S+))(.*?)', 'cool url: http://example.com and another http://example.org')
+[('cool url: ', 'http://example.com', ''), (' and another ', 'http://example.org', '')]
 """
 from __future__ import unicode_literals
 
