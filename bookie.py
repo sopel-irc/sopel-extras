@@ -187,32 +187,32 @@ def process_urls(bot, trigger, urls):
 
 def api_bmark(bot, trigger, found_match=None):
     global api_url, api_user, api_key
-    match = found_match or trigger
-    bytes = web.get(match)
+    url = found_match or trigger
+    bytes = web.get(url)
     # XXX: needs a patch to the URL module
     title = find_title(content=bytes)
     user = api_user
     key = api_key
     if (trigger.sender and not trigger.sender.is_nick() and
         bot.config.has_option('bookie', 'url_per_channel')):
-        res = re.search(trigger.sender + ':(\w+):(\w+)',
-                        bot.config.bookie.url_per_channel)
-        if res is not None:
-            user = res.group(1)
-            key = res.group(2)
+        match = re.search(trigger.sender + ':(\w+):(\w+)',
+                          bot.config.bookie.url_per_channel)
+        if match is not None:
+            user = match.group(1)
+            key = match.group(2)
     api = '%s%s/bmark?api_key=%s' % ( api_url, user, key )
     if title:
-        data = {u'url': match,
+        data = {u'url': url,
                 u'is_private': private,
                 u'description': title.encode('utf-8')}
-        bot.debug('bookie', 'submitting %s with title %s to %s with data %s' % (match,
+        bot.debug('bookie', 'submitting %s with title %s to %s with data %s' % (url,
                                                                                 repr(title),
                                                                                 api, data), 'warning')
         r = requests.post(api, data)
         r.headers['_http_status'] = r.status_code
-        return (title, get_hostname(match), r.text, r.headers)
+        return (title, get_hostname(url), r.text, r.headers)
     else:
-        bot.debug('bookie', 'no title found in %s' % match, 'warning')
+        bot.debug('bookie', 'no title found in %s' % url, 'warning')
 
 def find_title(url=None, content=None):
     """Return the title for the given URL.
