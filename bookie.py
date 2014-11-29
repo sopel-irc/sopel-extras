@@ -211,9 +211,10 @@ def api(bot, trigger, func, data=None):
             key = match.group(2)
             data['is_private'] = int(validate_private(match.group(3)))
     api = '%s%s/bmark?api_key=%s' % ( api_url, user, key )
-    bot.debug('bookie', 'submitting to %s data %s' % (api, api), 'warning')
+    bot.debug('bookie', 'submitting to %s data %s' % (api, data), 'verbose')
     r = requests.post(api, data)
     r.headers['_http_status'] = r.status_code
+    bot.debug('bookie', 'response: %s (headers: %s, body: %s)' % (r, r.text, r.headers), 'verbose')
     return (r.text, r.headers)
 
 def api_bmark(bot, trigger, found_match=None):
