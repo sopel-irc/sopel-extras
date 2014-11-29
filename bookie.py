@@ -22,6 +22,14 @@ import sys
 # we match all URLs to override the builtin url.py module
 regex = re.compile('.*')
 
+# an HTML tag. cargo-culted from etymology.py
+r_tag = re.compile(r'<[^>]+>')
+r_whitespace = re.compile(r'[\t\r\n ]+')
+
+def text(html):
+    html = r_tag.sub('', html)
+    html = r_whitespace.sub(' ', html)
+    return web.decode(html.strip())
 
 def configure(config):
     """
@@ -115,25 +123,28 @@ def process_urls(bot, trigger, urls):
             except:
                 pass
             bot.memory['last_seen_url'][trigger.sender] = url
-            (title, domain, resp) = api_bmark(bot, url)
-            try:
-                # assumes that bookie's times are UTC
-                timestamp = datetime.strptime(json.loads(resp)['bmark']['stored'], '%Y-%m-%d %H:%M:%S')
-                if pytz:
-                    tz = tools.get_timezone(bot.db, bot.config,
-                                            trigger.nick, trigger.sender)
-                    timestamp = tools.format_time(bot.db, bot.config, tz, trigger.nick,
-                                                  trigger.sender, timestamp)
-                else:
-                    timestamp += 'Z'
-                status = timestamp
-            except KeyError:
-                status = 'no timestamp in %s' % json.loads(resp)
-            except ValueError as e:
-                if 'JSON' in str(e):
-                    status = u'cannot parse JSON response: %s' % resp.decode('utf-8', 'ignore')
-                else:
-                    raise
+            (title, domain, resp, headers) = api_bmark(bot, url)
+            if headers['_http_status'] != 200:
+                status = 'error from bookie API: %s' % text(resp.decode('utf-8', 'ignore'))
+            else:
+                try:
+                    # assumes that bookie's times are UTC
+                    timestamp = datetime.strptime(json.loads(resp)['bmark']['stored'], '%Y-%m-%d %H:%M:%S')
+                    if pytz:
+                        tz = tools.get_timezone(bot.db, bot.config,
+                                                trigger.nick, trigger.sender)
+                        timestamp = tools.format_time(bot.db, bot.config, tz, trigger.nick,
+                                                      trigger.sender, timestamp)
+                    else:
+                        timestamp += 'Z'
+                    status = timestamp
+                except KeyError:
+                    status = 'no timestamp in %s' % json.loads(resp)
+                except ValueError as e:
+                    if 'JSON' in str(e):
+                        status = u'cannot parse JSON response: %s' % resp.decode('utf-8', 'ignore')
+                    else:
+                        raise
             message = '[ %s ] - %s (%s)' % (title, domain, status)
             # Guard against responding to other instances of this bot.
             if message != trigger:
@@ -151,10 +162,12 @@ def api_bmark(bot, trigger, found_match=None):
         bot.debug('bookie', 'submitting %s with title %s to %s' % (match.encode('utf-8'),
                                                                    repr(title),
                                                                    api), 'warning')
-        result = web.post(api, {u'url': match,
-                                u'is_private': False,
-                                u'description': title.encode('utf-8')})
-        return (title, get_hostname(match), result)
+        # XXX: requires PR https://github.com/embolalia/willie/pull/670
+        (result, headers) = web.post(api, {u'url': match,
+                                           u'is_private': False,
+                                           u'description': title.encode('utf-8')},
+                                     return_headers=True)
+        return (title, get_hostname(match), result, headers)
     else:
         bot.debug('bookie', 'no title found in %s' % match, 'warning')
 
