@@ -48,7 +48,7 @@ api_url = None
 api_user = None
 api_key = None
 api_suffix = '/api/v1/'
-private = None
+api_private = None
 
 def text(html):
     html = r_tag.sub('', html)
@@ -75,11 +75,19 @@ def configure(config):
             True)
 
         if config.option('Would you like to configure individual accounts per channel?', False):
-            c = 'Enter the API URL as #channel:account:key'
+            c = 'Enter the API URL as #channel:account:key:private'
             config.add_list('bookie', 'url_per_channel', c, 'Channel:')
 
+def validate_private(private):
+    # deal with non-configured private setting
+    if private is None:
+        private = True
+    if (type(private) == str):
+        private = True if private == 'True' else False
+    return private
+
 def setup(bot):
-    global url_finder, exclusion_char, api_url, api_key, api_user
+    global url_finder, exclusion_char, api_url, api_key, api_user, api_private
 
     if bot.config.bookie.api_url:
         try:
@@ -98,13 +106,7 @@ def setup(bot):
     else:
         raise ConfigurationError('Bookie module not configured')
 
-    private = bot.config.bookie.private
-    # deal with non-configured private setting
-    if private is None:
-        private = True
-    if (type(private) == str):
-        private = True if private == 'True' else False
-
+    api_private = validate_private( bot.config.bookie.private)
     if bot.config.has_option('url', 'exclusion_char'):
         exclusion_char = bot.config.url.exclusion_char
 
@@ -181,7 +183,7 @@ def process_urls(bot, trigger, urls):
                                                       trigger.sender, timestamp)
                     else:
                         timestamp += 'Z'
-                    status = timestamp
+                    status = 'posted on ' + timestamp
                 except KeyError:
                     status = 'no timestamp in %s' % json.loads(resp)
                 except ValueError as e:
@@ -202,17 +204,19 @@ def api_bmark(bot, trigger, found_match=None):
     title = find_title(content=bytes)
     user = api_user
     key = api_key
+    private = api_private
     if (trigger.sender and not trigger.sender.is_nick() and
         bot.config.has_option('bookie', 'url_per_channel')):
-        match = re.search(trigger.sender + ':(\w+):(\w+)',
+        match = re.search(trigger.sender + ':(\w+):(\w+)(?::(\w+))?',
                           bot.config.bookie.url_per_channel)
         if match is not None:
             user = match.group(1)
             key = match.group(2)
+            private = validate_private(match.group(3))
     api = '%s%s/bmark?api_key=%s' % ( api_url, user, key )
     if title:
         data = {u'url': url,
-                u'is_private': private,
+                u'is_private': int(private),
                 u'description': title.encode('utf-8'),
                 u'content': bytes}
         bot.debug('bookie', 'submitting %s with title %s to %s with data %s' % (url,
