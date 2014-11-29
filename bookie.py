@@ -66,7 +66,7 @@ def configure(config):
             True)
 
         if config.option('Would you like to configure individual accounts per channel?', False):
-            c = 'Enter the API URL as #channel:account'
+            c = 'Enter the API URL as #channel:account:key'
             config.add_list('bookie', 'url_per_channel', c, 'Channel:')
 
 def setup(bot):
@@ -158,7 +158,7 @@ def process_urls(bot, trigger, urls):
             except:
                 pass
             bot.memory['last_seen_url'][trigger.sender] = url
-            (title, domain, resp, headers) = api_bmark(bot, url)
+            (title, domain, resp, headers) = api_bmark(bot, trigger, url)
             if headers['_http_status'] != 200:
                 status = 'error from bookie API: %s' % text(resp.decode('utf-8', 'ignore'))
             else:
@@ -187,11 +187,20 @@ def process_urls(bot, trigger, urls):
 
 def api_bmark(bot, trigger, found_match=None):
     global api_url, api_user, api_key
-    match = trigger or found_match
+    match = found_match or trigger
     bytes = web.get(match)
     # XXX: needs a patch to the URL module
     title = find_title(content=bytes)
-    api = '%s/%s/bmark?api_key=%s' % ( api_url, api_user, api_key )
+    user = api_user
+    key = api_key
+    if (trigger.sender and not trigger.sender.is_nick() and
+        bot.config.has_option('bookie', 'url_per_channel')):
+        res = re.search(trigger.sender + ':(\w+):(\w+)',
+                        bot.config.bookie.url_per_channel)
+        if res is not None:
+            user = res.group(1)
+            key = res.group(2)
+    api = '%s%s/bmark?api_key=%s' % ( api_url, user, key )
     if title:
         data = {u'url': match,
                 u'is_private': private,
