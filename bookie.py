@@ -196,15 +196,10 @@ def process_urls(bot, trigger, urls):
             if message != trigger:
                 bot.say(message)
 
-def api_bmark(bot, trigger, found_match=None):
+def api(bot, trigger, func, data=None):
     global api_url, api_user, api_key
-    url = found_match or trigger
-    bytes = web.get(url)
-    # XXX: needs a patch to the URL module
-    title = find_title(content=bytes)
     user = api_user
     key = api_key
-    private = api_private
     if (trigger.sender and not trigger.sender.is_nick() and
         bot.config.has_option('bookie', 'url_per_channel')):
         match = re.search(trigger.sender + ':(\w+):(\w+)(?::(\w+))?',
@@ -212,21 +207,23 @@ def api_bmark(bot, trigger, found_match=None):
         if match is not None:
             user = match.group(1)
             key = match.group(2)
-            private = validate_private(match.group(3))
+            data['is_private'] = int(validate_private(match.group(3)))
     api = '%s%s/bmark?api_key=%s' % ( api_url, user, key )
-    if title:
-        data = {u'url': url,
-                u'is_private': int(private),
-                u'description': title.encode('utf-8'),
-                u'content': bytes}
-        bot.debug('bookie', 'submitting %s with title %s to %s with data %s' % (url,
-                                                                                repr(title),
-                                                                                api, data), 'warning')
-        r = requests.post(api, data)
-        r.headers['_http_status'] = r.status_code
-        return (title, get_hostname(url), r.text, r.headers)
-    else:
-        bot.debug('bookie', 'no title found in %s' % url, 'warning')
+    bot.debug('bookie', 'submitting to %s data %s' % (api, api), 'warning')
+    r = requests.post(api, data)
+    r.headers['_http_status'] = r.status_code
+    return (r.text, r.headers)
+
+def api_bmark(bot, trigger, found_match=None):
+    url = found_match or trigger
+    bytes = web.get(url)
+    # XXX: needs a patch to the URL module
+    title = find_title(content=bytes)
+    data = {u'url': url,
+            u'is_private': int(api_private),
+            u'description': title.encode('utf-8'),
+            u'content': bytes}
+    return [title, get_hostname(url)] + list(api(bot, trigger, 'bmark', data))
 
 def find_title(url=None, content=None):
     """Return the title for the given URL.
