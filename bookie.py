@@ -166,7 +166,7 @@ def api_bmark(bot, trigger, found_match=None):
                                        bot.config.bookie.api_key )
     if title:
         data = {u'url': match,
-                u'is_private': bot.config.bookie.private,
+                u'is_private': int(bot.config.bookie.private),
                 u'description': title.encode('utf-8')}
         bot.debug('bookie', 'submitting %s with title %s to %s with data %s' % (match,
                                                                                 repr(title),
