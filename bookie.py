@@ -107,7 +107,7 @@ def validate_private(private):
     if private is None:
         private = True
     if (type(private) == str):
-        private = True if private == 'True' else False
+        private = True if lower(private) == 'true' else False
     return private
 
 def setup(bot):
