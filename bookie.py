@@ -54,6 +54,11 @@ def configure(config):
             'api_key',
             'API key on the Bookie site',
             None)
+        config.interactive_add(
+            'bookie',
+            'private',
+            'Mark bookmarks as private',
+            True)
 
 def setup(bot):
     global url_finder, exclusion_char
@@ -164,7 +169,7 @@ def api_bmark(bot, trigger, found_match=None):
                                                                    api), 'warning')
         # XXX: requires PR https://github.com/embolalia/willie/pull/670
         (result, headers) = web.post(api, {u'url': match,
-                                           u'is_private': False,
+                                           u'is_private': int(bot.config.bookie.private),
                                            u'description': title.encode('utf-8')},
                                      return_headers=True)
         return (title, get_hostname(match), result, headers)
