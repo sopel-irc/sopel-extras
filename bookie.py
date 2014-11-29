@@ -3,6 +3,10 @@
 Copyright 2014, Antoine Beaupré <anarcat@debian.org>
 Licensed under the Eiffel Forum License 2.
 
+This will store links found on an IRC channel into a Bookie
+instance. It needs to be configured with a username/key to be
+functional, per-channel configs are possible.
+
 Missing:
 * add tags, extended descriptions options to .bmark
 * parse #tags on the auto url parser
@@ -12,6 +16,12 @@ with "non-hungry" patterns:
 
 >>> re.findall(r'(?u)(.*?)(!?(?:http|https|ftp)(?:://\S+))(.*?)', 'cool url: http://example.com and another http://example.org')
 [('cool url: ', 'http://example.com', ''), (' and another ', 'http://example.org', '')]
+
+Also, this uses only a tiny part of the Bookie API, we could expand
+functionalities here significantly:
+
+https://github.com/bookieio/Bookie/blob/develop/docs/api/user.rst
+
 """
 from __future__ import unicode_literals
 
