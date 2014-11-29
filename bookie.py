@@ -213,7 +213,8 @@ def api_bmark(bot, trigger, found_match=None):
     if title:
         data = {u'url': url,
                 u'is_private': private,
-                u'description': title.encode('utf-8')}
+                u'description': title.encode('utf-8'),
+                u'content': bytes}
         bot.debug('bookie', 'submitting %s with title %s to %s with data %s' % (url,
                                                                                 repr(title),
                                                                                 api, data), 'warning')
