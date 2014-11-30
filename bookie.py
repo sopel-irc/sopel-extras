@@ -257,6 +257,8 @@ def api_bmark(bot, trigger, found_match=None):
     bytes = web.get(url)
     # XXX: needs a patch to the URL module
     title = find_title(content=bytes)
+    if title is None:
+        title = '[untitled]'
     data = {u'url': url,
             u'is_private': int(api_private),
             u'description': title.encode('utf-8'),
