@@ -7,16 +7,6 @@ This will store links found on an IRC channel into a Bookie
 instance. It needs to be configured with a username/key to be
 functional, per-channel configs are possible.
 
-Missing:
-* add tags, extended descriptions options to .bmark
-* parse #tags on the auto url parser
-
-The above is annoyingly hard with regexes... but i've had good success
-with "non-hungry" patterns:
-
->>> re.findall(r'(?u)(.*?)(!?(?:http|https|ftp)(?:://\S+))(.*?)', 'cool url: http://example.com and another http://example.org')
-[('cool url: ', 'http://example.com', ''), (' and another ', 'http://example.org', '')]
-
 Also, this uses only a tiny part of the Bookie API, we could expand
 functionalities here significantly:
 
@@ -139,7 +129,7 @@ def setup(bot):
     if bot.config.has_option('url', 'exclusion_char'):
         exclusion_char = bot.config.url.exclusion_char
 
-    url_finder = re.compile(r'(?u)(%s?(?:http|https|ftp)(?:://\S+))' %
+    url_finder = re.compile(r'(?u)(.*?)\s*(%s?(?:http|https|ftp)(?:://\S+)\s*(.*?))' %
                             (exclusion_char))
     if not bot.memory.contains('url_callbacks'):
         bot.memory['url_callbacks'] = tools.WillieMemory()
@@ -151,7 +141,7 @@ def shutdown(bot):
     del bot.memory['url_callbacks'][regex]
 
 @commands('bmark')
-@example('.bmark http://example.com', '[ Example ] - example.com')
+@example('.bmark #tag description http://example.com', '[ Example ] - example.com')
 def bmark(bot, trigger):
     # cargo-culted from url.py
     if not trigger.group(2):
@@ -186,7 +176,7 @@ def title_auto(bot, trigger):
     results = process_urls(bot, trigger, urls)
 
 def process_urls(bot, trigger, urls):
-    for url in urls:
+    for pre, url, post in urls:
         if not url.startswith(exclusion_char):
             # Magic stuff to account for international domain names
             try:
@@ -195,7 +185,7 @@ def process_urls(bot, trigger, urls):
                 pass
             bot.memory['last_seen_url'][trigger.sender] = url
             # post the bookmark to the Bookie API
-            (title, domain, resp, headers) = api_bmark(bot, trigger, url)
+            (title, domain, resp, headers) = api_bmark(bot, trigger, url, pre+post)
             if headers['_http_status'] != 200:
                 status = 'error from bookie API: %s' % text(resp.decode('utf-8', 'ignore'))
             else:
@@ -246,7 +236,7 @@ def api(bot, trigger, func, data=None):
     bot.debug('bookie', 'response: %s (headers: %s, body: %s)' % (r, r.text, r.headers), 'verbose')
     return (r.text, r.headers)
 
-def api_bmark(bot, trigger, found_match=None):
+def api_bmark(bot, trigger, found_match=None, extra=None):
     url = found_match or trigger
     bytes = web.get(url)
     # XXX: needs a patch to the URL module
@@ -257,6 +247,17 @@ def api_bmark(bot, trigger, found_match=None):
             u'is_private': int(api_private),
             u'description': title.encode('utf-8'),
             u'content': bytes}
+    if extra is not None:
+        # extract #tags, uniquely
+        # copied from http://stackoverflow.com/a/6331688/1174784
+        tags = {tag.strip("#") for tag in extra.split() if tag.startswith("#")}
+        if tags:
+            data['tags'] = ' '.join(tags)
+        # strip tags from message and see what's left
+        message = re.sub(r'#\w+', '', extra).strip()
+        if message <> '':
+            # something more than hashtags was provided
+            data['extended'] = extra
     return [title, get_hostname(url)] + list(api(bot, trigger, 'bmark', data))
 
 def find_title(url=None, content=None):
