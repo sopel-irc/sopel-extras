@@ -39,9 +39,6 @@ else:
     urlparse = urllib.parse.urlparse
 
 
-# we match all URLs to override the builtin url.py module
-regex = re.compile('.*')
-
 # an HTML tag. cargo-culted from etymology.py
 r_tag = re.compile(r'<[^>]+>')
 r_whitespace = re.compile(r'[\t\r\n ]+')
@@ -81,6 +78,11 @@ def configure(config):
             'private',
             'Mark bookmarks as private',
             True)
+        config.interactive_add(
+            'bookie',
+            'auto',
+            'Automatically parse bookmarks',
+            False)
 
         if config.option('Would you like to configure individual accounts per channel?', False):
             c = 'Enter the API URL as #channel:account:key:private'
@@ -131,14 +133,15 @@ def setup(bot):
 
     url_finder = re.compile(r'(?u)(.*?)\s*(%s?(?:http|https|ftp)(?:://\S+)\s*(.*?))' %
                             (exclusion_char))
-    if not bot.memory.contains('url_callbacks'):
-        bot.memory['url_callbacks'] = tools.WillieMemory()
-    bot.memory['url_callbacks'][regex] = bmark
-
+    if bot.config.bookie.auto:
+        if not bot.memory.contains('url_callbacks'):
+            bot.memory['url_callbacks'] = tools.WillieMemory()
+        bot.memory['url_callbacks'][re.compile('.*')] = bmark
     
 
 def shutdown(bot):
-    del bot.memory['url_callbacks'][regex]
+    if bot.config.bookie.auto:
+        del bot.memory['url_callbacks'][re.compile('.*')]
 
 @commands('bmark')
 @example('.bmark #tag description http://example.com', '[ Example ] - example.com')
