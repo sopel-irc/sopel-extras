@@ -155,16 +155,10 @@ def shutdown(bot):
 def bmark(bot, trigger):
     # cargo-culted from url.py
     if not trigger.group(2):
-        # unsure what this does
+        # this bookmarks the last URL seen by url.py or this module
         if trigger.sender not in bot.memory['last_seen_url']:
             return
-        matched = check_callbacks(bot, trigger,
-                                  bot.memory['last_seen_url'][trigger.sender],
-                                  True)
-        if matched:
-            return
-        else:
-            urls = [bot.memory['last_seen_url'][trigger.sender]]
+        urls = [bot.memory['last_seen_url'][trigger.sender]]
     else:
         urls = re.findall(url_finder, trigger)
     process_urls(bot, trigger, urls)
