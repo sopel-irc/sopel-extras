@@ -28,8 +28,11 @@ def configure(config):
     | base_url  | https://example.org/redmine/ | Base URL for your Redmine installation |
     | api_access_key | 8843d7f92416211de9ebb963ff4ce28125932878 | Your Redmine API access key |
     """
-    config.interactive_add('redmine', 'base_url', 'Base URL')
-    config.interactive_add('redmine', 'api_access_key', 'API Access Key')
+    if config.option('Configure Redmine?', False):
+        if not config.has_section('redmine'):
+            config.add_section('redmine')
+        config.interactive_add('redmine', 'base_url', 'Redmine Base URL')
+        config.interactive_add('redmine', 'api_access_key', 'API Access Key')
 
 
 def setup(bot):
