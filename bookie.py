@@ -7,7 +7,18 @@ This will store links found on an IRC channel into a Bookie
 instance. It needs to be configured with a username/key to be
 functional, per-channel configs are possible.
 
-Also, this uses only a tiny part of the Bookie API, we could expand
+Bookie is an open-source bookmarking application that is hosted on
+http://bookie.io/ and can also be self-hosted. It is similar in
+functionality to the http://del.icio.us/ commercial service.
+
+Bookie can be useful to store a cached copy of links mentionned on
+IRC. It will also generate an RSS feed of those links automatically,
+and more! The author, for example, turns those RSS feeds into ePUB
+e-books that are then transfered on his e-book reader so in effect,
+Bookie and this plugin create a way to read links mentionned on IRC on
+his ebook reader, offline.
+
+This plugin uses only a tiny part of the Bookie API, we could expand
 functionalities here significantly:
 
 https://github.com/bookieio/Bookie/blob/develop/docs/api/user.rst
