@@ -18,7 +18,11 @@ def configure(config):
     | -------- | ------- | ------- |
     | channel | #help | Enter the channel HelpBot should moderate |
     """
-    config.interactive_add('helpbot', 'channel', "Enter the channel HelpBot should moderate", '#help')
+    config.interactive_add('helpbot', 'channel', "Enter the channel HelpBot should moderate", None)
+
+def setup(bot):
+    if not bot.config.helpbot.channel:
+        raise ConfigurationError('Helpbot module not configured')
 
 @event('JOIN')
 @rule(r'.*')
