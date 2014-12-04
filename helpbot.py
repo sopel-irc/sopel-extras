@@ -35,10 +35,19 @@ def addNewHelpee(bot, trigger):
         return
     helpees.append({'nick': trigger.nick, 'request': None, 'active': False, 'skipped': False})
     try:
-        bot.reply('Welcome to '+str(trigger)+'. Please PM '+bot.nick+' with your help request, prefixed with \'.request\' (Example: /msg '+bot.nick+' .request I lost my password.) Don\'t include any private information with your question (passwords etc), as the question will be posted in this channel')
+        bot.reply('Welcome to '+trigger.sender+'. Please PM '+bot.nick+' with your help request, prefixed with \'.request\' (Example: /msg '+bot.nick+' .request I lost my password.) Don\'t include any private information with your question (passwords etc), as the question will be posted in this channel')
     except AttributeError:
         bot.debug('Help','You\'re running a module requiring configuration, without having configured it.','warning')
         return
+
+@event('NICK')
+@rule(r'.*')
+def helpeeRename(bot, trigger):
+    """ Update the list when somebody changes nickname. """
+    for h in helpees:
+        if h['nick'] == trigger.nick:
+            h['nick'] = trigger.args[0]
+            return
 
 @event('QUIT')
 @rule(r'.*')
