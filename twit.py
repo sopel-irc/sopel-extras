@@ -6,6 +6,7 @@ Licensed under the Eiffel Forum License 2.
 
 http://willie.dftba.net
 """
+from __future__ import print_function
 import tweepy
 import time
 import re
@@ -121,7 +122,7 @@ def f_update(willie, trigger):
         auth.set_access_token(willie.config.twitter.access_token, willie.config.twitter.access_token_secret)
         api = tweepy.API(auth)
 
-        print api.me().name
+        print(api.me().name)
 
         update = str(trigger.group(2)) + " ^" + trigger.nick
         if len(update) <= 140:
@@ -158,4 +159,4 @@ f_reply.priority = 'medium'
 f_reply.example = '.reply 892379487 I like that idea!'
 
 if __name__ == '__main__':
-    print __doc__.strip()
+    print(__doc__.strip())

@@ -33,6 +33,7 @@ bucket_runtime_data.inhibit_reply = trigger.group(0)
 
 and make sure the priority of your callable is medium or higher.
 """
+from __future__ import print_function
 import MySQLdb
 import re
 from re import sub
@@ -199,13 +200,13 @@ def remove_punctuation(string):
 
 
 def setup(bot):
-    print 'Setting up Bucket...'
+    print('Setting up Bucket...')
     db = None
     cur = None
     try:
         db = connect_db(bot)
     except:
-        print 'Error connecting to the bucket database.'
+        print('Error connecting to the bucket database.')
         raise
         return
     bucket_runtime_data.inventory = Inventory()
@@ -227,7 +228,7 @@ def setup(bot):
                 PRIMARY KEY (`id`))""")
     warnings.filterwarnings('default')
     db.close()
-    print 'Done setting up Bucket!'
+    print('Done setting up Bucket!')
 
 
 def add_fact(bot, trigger, fact, tidbit, verb, re, protected, mood, chance, say=True):
@@ -599,7 +600,7 @@ def say_fact(bot, trigger):
         else:
             cur.execute('SELECT * FROM bucket_facts WHERE fact = %s ORDER BY id ASC', [search_term])
         results = cur.fetchall()
-    except UnicodeEncodeError, e:
+    except UnicodeEncodeError as e:
         bot.debug('bucket', 'Warning, database encoding error', 'warning')
         bot.debug('bucket', e, 'warning')
     finally:
@@ -675,7 +676,7 @@ def pick_result(results, bot):
                 cur.execute('SELECT * FROM bucket_facts WHERE fact = %s',
                             (search_term))
                 results = cur.fetchall()
-            except UnicodeEncodeError, e:
+            except UnicodeEncodeError as e:
                 bot.debug('bucket', 'Warning, database encoding error',
                           'warning')
                 bot.debug('bucket', e, 'warning')
@@ -683,7 +684,7 @@ def pick_result(results, bot):
                 db.close()
             result = pick_result(results, bot)
         return result
-    except RuntimeError, e:
+    except RuntimeError as e:
         bot.debug('bucket', 'RutimeError in pick_result', 'warning')
         bot.debug('bucket', e, 'warning')
         bot.debug('bucket', 'search term was: %s' % search_term, 'warning')
@@ -893,4 +894,4 @@ def too_quiet(bot):
             time.sleep(randint(2, 11))
 
 if __name__ == '__main__':
-    print __doc__.strip()
+    print(__doc__.strip())

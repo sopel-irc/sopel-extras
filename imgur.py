@@ -8,8 +8,13 @@ Licensed under the Eiffel Forum License 2.
 import json
 import re
 import os.path
-from urllib2 import HTTPError
-from urlparse import urlparse
+import sys
+if sys.version_info.major < 3:
+    from urllib2 import HTTPError
+    from urlparse import urlparse
+else:
+    from urllib.request import HTTPError
+    from urllib.parse import urlparse
 from willie.config import ConfigurationError
 from willie import web, tools
 from willie.module import rule
