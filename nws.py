@@ -7,6 +7,7 @@ http://willie.dftba.net
 This module allows one to query the National Weather Service for active
 watches, warnings, and advisories that are present.
 """
+from __future__ import print_function
 from willie.module import commands, priority
 import feedparser
 import re
@@ -168,4 +169,4 @@ def nws_lookup(bot, trigger):
             bot.msg(trigger.nick, more_info.format(location, master_url))
 
 if __name__ == '__main__':
-    print __doc__.strip()
+    print(__doc__.strip())

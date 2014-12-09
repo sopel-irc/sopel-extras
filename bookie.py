@@ -46,7 +46,7 @@ if sys.version_info.major < 3:
     import urlparse
     urlparse = urlparse.urlparse
 else:
-    import urllibe
+    import urllib
     urlparse = urllib.parse.urlparse
 
 
@@ -269,7 +269,7 @@ def api_bmark(bot, trigger, found_match=None, extra=None):
             data['tags'] = ' '.join(tags)
         # strip tags from message and see what's left
         message = re.sub(r'#\w+', '', extra).strip()
-        if message <> '':
+        if message != '':
             # something more than hashtags was provided
             data['extended'] = extra
     return [title, get_hostname(url)] + list(api(bot, trigger, 'bmark', data))

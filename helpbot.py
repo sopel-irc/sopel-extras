@@ -5,6 +5,7 @@ Licensed under the Eiffel Forum License 2.
 
 http://willie.dftba.net/
 """
+from __future__ import print_function
 from willie.module import rule, event, commands
 from collections import deque
 
@@ -123,4 +124,4 @@ def next(bot, trigger):
         bot.write(['MODE', bot.config.helpbot.channel, '+v', helpee['nick']])
 
 if __name__ == '__main__':
-    print __doc__.strip()
+    print(__doc__.strip())

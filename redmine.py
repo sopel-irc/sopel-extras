@@ -8,8 +8,14 @@ This module will respond to Redmine commands.
 """
 
 from collections import OrderedDict
-from HTMLParser import HTMLParser
-from urllib import urlencode, quote
+try:
+    from HTMLParser import HTMLParser
+except ImportError: # py3
+    import html.parser as HTMLParser
+try:
+    from urllib import urlencode, quote
+except ImportError: # py3
+    from urllib.parse import urlencode, quote
 from willie import web, tools
 from willie.module import rule, commands, example
 import dateutil.parser

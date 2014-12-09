@@ -6,6 +6,7 @@ Licensed under the Eiffel Forum License 2.
 http://willie.dftba.net
 """
 
+from __future__ import print_function
 from willie.module import commands, priority
 import random
 from datetime import datetime, timedelta
@@ -78,4 +79,4 @@ def rouletteStop(bot, trigger):
 
 
 if __name__ == '__main__':
-    print __doc__.strip()
+    print(__doc__.strip())
