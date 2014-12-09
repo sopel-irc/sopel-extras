@@ -252,7 +252,8 @@ def api(bot, trigger, func, data=None):
 
 def api_bmark(bot, trigger, found_match=None, extra=None):
     url = found_match or trigger
-    bytes = web.get(url)
+    # XXX: we use requests instead of web.get because web.get doesn't support SNI
+    bytes = requests.get(url).text
     # XXX: needs a patch to the URL module
     title = find_title(content=bytes)
     if title is None:
