@@ -25,13 +25,12 @@ def lart(bot, trigger):
         bot.say("No insult found! Type .help addlart")
         return;
 
-    n_msg = random.randint(0, len(messages) - 1)
     if trigger.group(2) is None:
         user = trigger.nick.strip()
     else:
         user = trigger.group(2).strip()
 
-    message = messages[n_msg].replace('LUSER', user).encode('utf_8')
+    message = random.choice(messages).replace('LUSER', user).encode('utf_8')
 
     bot.say(message)
 
@@ -40,7 +39,7 @@ def addlart(bot, trigger):
     """Adds another insult to bot's collection with: .addlart <insult>. 'insult' _must_ contain 'LUSER' which will be substituted with the name of the luser."""
     try:
         lart = trigger.group(2).replace('"','\"').encode('utf_8')
-        collection = open('.lart.collection', 'a', encoding='utf-8')
+        collection = open('.lart.collection', 'a')
         collection.write("%s\n"%lart)
         collection.close()
     except Exception as e:
