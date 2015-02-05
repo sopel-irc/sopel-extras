@@ -7,7 +7,7 @@ http://willie.dftba.net
 
 import random
 from willie.module import commands
-from willie.tools import Nick
+from willie.tools import Identifier
 
 
 @commands('slap', 'slaps')
@@ -17,7 +17,7 @@ def slap(willie, trigger):
     if len(text) < 2 or text[1].startswith('#'):
         return
     try:
-        if Nick(text[1]) not in willie.privileges[trigger.sender.lower()]:
+        if Identifier(text[1]) not in willie.privileges[trigger.sender.lower()]:
             willie.say("You can't slap someone who isn't here!")
             return
     except KeyError:
