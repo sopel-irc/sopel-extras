@@ -242,7 +242,7 @@ def add_fact(bot, trigger, fact, tidbit, verb, re, protected, mood, chance, say=
         return False
     finally:
         db.close()
-    bucket_runtime_data.last_teach[trigger.sender] = [fact, verb, tidbit]
+    bucket_runtime_data.last_teach[trigger.sender] = [fact, verb, tidbit, trigger.nick]
     if say:
         bot.say("Okay, " + trigger.nick)
     return True
@@ -399,20 +399,25 @@ def undo_teach(bot, trigger):
     """Undo teaching factoid"""
     was = bucket_runtime_data.what_was_that
     bucket_runtime_data.inhibit_reply = trigger
-    if not trigger.admin:
-        was[trigger.sender] = dont_know(bot, trigger)
-        return
+
     last_teach = bucket_runtime_data.last_teach
     fact = ''
     verb = ''
     tidbit = ''
+    author = ''
     try:
         fact = last_teach[trigger.sender][0]
         verb = last_teach[trigger.sender][1]
         tidbit = last_teach[trigger.sender][2]
+        author = last_teach[trigger.sender][3]
     except KeyError:
         bot.reply('Nothing to undo!')
         return
+    
+    if not trigger.admin or author is trigger.nick: 
+        was[trigger.sender] = dont_know(bot, trigger)
+        return
+    
     db = None
     cur = None
     db = connect_db(bot)
