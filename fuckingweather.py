@@ -21,8 +21,8 @@ def fucking_weather(bot, trigger):
         bot.reply("INVALID FUCKING PLACE. PLEASE ENTER A FUCKING ZIP CODE, OR A FUCKING CITY-STATE PAIR.")
         return
     text = web.quote(text)
-    page = web.get("http://thefuckingweather.com/?where=%s" % (text))
-    re_mark = re.compile('<p class="remark">(.*?)</p>')
+    page = web.get("http://thefuckingweather.com/Where/%s" % (text))
+    re_mark = re.compile('<p class="remark jsRemark">(.*?)</p>')
     results = re_mark.findall(page)
     if results:
         bot.reply(results[0])
