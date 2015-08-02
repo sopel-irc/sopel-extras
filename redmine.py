@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 """
-redmine.py - Willie Redmine Module
+redmine.py - Sopel Redmine Module
 Copyright 2013, Ben Ramsey, benramsey.com
 Licensed under the MIT License.
 
@@ -16,8 +16,8 @@ try:
     from urllib import urlencode, quote
 except ImportError: # py3
     from urllib.parse import urlencode, quote
-from willie import web, tools
-from willie.module import rule, commands, example
+from sopel import web, tools
+from sopel.module import rule, commands, example
 import dateutil.parser
 import json
 import re
@@ -48,7 +48,7 @@ def setup(bot):
         pattern_url = pattern_url + '/'
     redmine = re.compile(pattern_url + '(\S+)\/(\w+)')
     if not bot.memory.contains('url_callbacks'):
-        bot.memory['url_callbacks'] = tools.WillieMemory()
+        bot.memory['url_callbacks'] = tools.SopelMemory()
     bot.memory['url_callbacks'][redmine] = redmine_url
 
 

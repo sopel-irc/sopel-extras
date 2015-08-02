@@ -1,12 +1,12 @@
 """
 Name:		Calibre Search
-Purpose:	Allows your IRC bot (Willie) to search a configured Calibre library
+Purpose:	Allows your IRC bot (Sopel) to search a configured Calibre library
 Author:	  	Kevin Laurier
 Created:	14/11/2013
 Copyright:	(c) Kevin Laurier 2013
 Licence:	GPLv3
 
-This module allows your Willie bot to act as an interface for a configured Calibre
+This module allows your Sopel bot to act as an interface for a configured Calibre
 server by using its REST API. You can enter search words to obtain a list of URLs
 to the ebooks stored on the server. The Calibre server may be remote or on the
 local machine.
@@ -15,7 +15,7 @@ local machine.
 
 from base64 import b64encode
 import requests
-from willie.module import commands, example
+from sopel.module import commands, example
 
 
 class CalibreRestFacade(object):
@@ -36,14 +36,14 @@ class CalibreRestFacade(object):
 		Get all books corresponding to a list of IDs
 		"""
 		book_ids_csv = ','.join(str(b_id) for b_id in book_ids)
-		return requests.get(self.url + '/ajax/books', 
+		return requests.get(self.url + '/ajax/books',
 			auth=self.auth, params={'ids': book_ids_csv}).json()
 
 	def search(self, keywords):
 		"""
 		Get a list of IDs corresponding to the search results
 		"""
-		return requests.get(self.url + '/ajax/search', 
+		return requests.get(self.url + '/ajax/search',
 			auth=self.auth, params={'query': keywords}).json()
 
 
@@ -59,11 +59,11 @@ def configure(config):
 		if not config.has_section('calibre'):
 			config.add_section('calibre')
 		config.interactive_add('calibre', 'url', "Enter the URL to your Calibre server (without trailing slashes)")
-		
+
 		if config.option('Configure username / password for your Calibre server?'):
 			config.interactive_add('calibre', 'username', "Enter your Calibre username")
 			config.interactive_add('calibre', 'password', "Enter your Calibre password", ispass=True)
-		config.save()		
+		config.save()
 
 
 def setup(bot):
@@ -84,7 +84,7 @@ def calibre(bot, trigger):
 	if not search_words:
 		bot.reply('The Calibre library is here: ' + bot.config.calibre.url)
 		return
-		
+
 	calibre = bot.memory['calibre']
 	book_ids = calibre.search(search_words)['book_ids']
 	num_books = len(book_ids)
@@ -92,7 +92,7 @@ def calibre(bot, trigger):
 	if num_books == 1:
 		book_title = calibre.books(book_ids).values()[0]['title']
 		bot.reply(u'{}: {}/browse/book/{}'
-			.format(book_title, calibre.url, book_ids[0]))				
+			.format(book_title, calibre.url, book_ids[0]))
 
 	elif num_books > 1:
 		results = calibre.books(book_ids)

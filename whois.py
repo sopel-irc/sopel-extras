@@ -1,16 +1,16 @@
 """
-whois.py - Willie Whois module
-Copyright 2014, Ellis Percival (Flyte) willie@failcode.co.uk
+whois.py - Sopel Whois module
+Copyright 2014, Ellis Percival (Flyte) sopel@failcode.co.uk
 Licensed under the Eiffel Forum License 2.
 
-http://willie.dftba.net
+http://sopel.chat
 
-A module to enable Willie to perform WHOIS lookups on nicknames.
-This can either be to have Willie perform lookups on behalf of
+A module to enable Sopel to perform WHOIS lookups on nicknames.
+This can either be to have Sopel perform lookups on behalf of
 other people, or can be imported and used by other modules.
 """
 
-from willie.module import commands, event, rule
+from sopel.module import commands, event, rule
 from time import sleep
 from datetime import datetime, timedelta
 

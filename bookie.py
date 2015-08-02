@@ -1,5 +1,5 @@
 # coding=utf8
-"""bookie.py - Willie URL storage into bookie
+"""bookie.py - sopel URL storage into bookie
 Copyright 2014, Antoine Beaupré <anarcat@debian.org>
 Licensed under the Eiffel Forum License 2.
 
@@ -26,10 +26,10 @@ https://github.com/bookieio/Bookie/blob/develop/docs/api/user.rst
 """
 from __future__ import unicode_literals
 
-from willie import web, tools
-from willie.module import commands, rule, example
-from willie.modules.url import get_hostname, url_finder, exclusion_char, title_tag_data, quoted_title, re_dcc
-from willie.config import ConfigurationError
+from sopel import web, tools
+from sopel.module import commands, rule, example
+from sopel.modules.url import get_hostname, url_finder, exclusion_char, title_tag_data, quoted_title, re_dcc
+from sopel.config import ConfigurationError
 
 from datetime import datetime
 import getpass
@@ -146,9 +146,9 @@ def setup(bot):
                             (exclusion_char))
     if bot.config.bookie.auto:
         if not bot.memory.contains('url_callbacks'):
-            bot.memory['url_callbacks'] = tools.WillieMemory()
+            bot.memory['url_callbacks'] = tools.SopelMemory()
         bot.memory['url_callbacks'][re.compile('.*')] = bmark
-    
+
 
 def shutdown(bot):
     if bot.config.bookie.auto:
@@ -167,7 +167,7 @@ def bmark(bot, trigger):
         urls = re.findall(url_finder, trigger)
     process_urls(bot, trigger, urls)
 
-    
+
 @rule('(?u).*(https?://\S+).*')
 def title_auto(bot, trigger):
     """Automatically show titles for URLs. For shortened URLs/redirects, find
@@ -194,7 +194,7 @@ def process_urls(bot, trigger, urls):
         if not url.startswith(exclusion_char):
             # Magic stuff to account for international domain names
             try:
-                url = willie.web.iri_to_uri(url)
+                url = sopel.web.iri_to_uri(url)
             except:
                 pass
             bot.memory['last_seen_url'][trigger.sender] = url
@@ -308,5 +308,5 @@ def find_title(url=None, content=None):
 
 
 if __name__ == "__main__":
-    from willie.test_tools import run_example_tests
+    from sopel.test_tools import run_example_tests
     run_example_tests(__file__)

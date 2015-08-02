@@ -1,5 +1,5 @@
-from willie import coretasks
-from willie.module import commands
+from sopel import coretasks
+from sopel.module import commands
 import os
 import subprocess
 
@@ -9,10 +9,10 @@ def configure(config):
     | [document] | example | purpose |
     | ---------- | ------- | ------- |
     | layout | default | The jekyll layout to use for the commands page |
-    | base_dir | /home/user/willie-website | The location of the jekyll site source |
-    | plugins_dir | /home/user/willie-website/_plugins | The location of the jekyll plugins directory |
-    | layouts_dir | /home/user/willie-website/_layouts | The location of the jekyll layouts directory |
-    | output_dir | /var/www/willie | The location of the jekyll generated site |
+    | base_dir | /home/user/sopel-website | The location of the jekyll site source |
+    | plugins_dir | /home/user/sopel-website/_plugins | The location of the jekyll plugins directory |
+    | layouts_dir | /home/user/sopel-website/_layouts | The location of the jekyll layouts directory |
+    | output_dir | /var/www/sopel | The location of the jekyll generated site |
     | jekyll_location | /opt/jekyll/jekyll | The location of the jekyll executable. Not needed if jekyll is on the user's PATH |
     """
     if config.option('Compile command listings to a Jekyll site', False):

@@ -4,15 +4,15 @@ Copyright 2010-2013, Dimitri "Tyrope" Molenaars, TyRope.nl
 Copyright 2013     , Lior    "Eyore"  Ramati   , FireRogue517@gmail.com
 Licensed under the Eiffel Forum License 2.
 
-http://willie.dftba.net/
+http://sopel.chat/
 """
 
 from __future__ import print_function
-from willie.module import commands, priority
+from sopel.module import commands, priority
 from random import randint, seed
 import time
 import os.path
-from willie.modules.calc import calculate
+from sopel.modules.calc import calculate
 import re
 
 seed()

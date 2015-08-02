@@ -3,13 +3,13 @@ oblique.py - Web Services Interface
 Copyright 2008-9, Sean B. Palmer, inamidst.com
 Licensed under the Eiffel Forum License 2.
 
-http://willie.dftba.net
+http://sopel.chat
 """
 
 import re
 import urllib
-import willie.web as web
-from willie.module import commands, example
+import sopel.web as web
+from sopel.module import commands, example
 
 definitions = 'https://github.com/nslater/oblique/wiki'
 

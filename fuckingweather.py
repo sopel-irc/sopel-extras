@@ -1,14 +1,14 @@
 """
-fuckingweather.py - Willie module for The Fucking Weather
+fuckingweather.py - Sopel module for The Fucking Weather
 Copyright 2013 Michael Yanovich
 Copyright 2013 Edward Powell
 
 Licensed under the Eiffel Forum License 2.
 
-http://willie.dftba.net
+http://sopel.chat
 """
-from willie.module import commands, rate, priority, NOLIMIT
-from willie import web
+from sopel.module import commands, rate, priority, NOLIMIT
+from sopel import web
 import re
 
 

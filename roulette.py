@@ -1,13 +1,13 @@
 """
-roulette.py - Willie Roulette Game Module
+roulette.py - Sopel Roulette Game Module
 Copyright 2010, Kenneth Sham
 Licensed under the Eiffel Forum License 2.
 
-http://willie.dftba.net
+http://sopel.chat
 """
 
 from __future__ import print_function
-from willie.module import commands, priority
+from sopel.module import commands, priority
 import random
 from datetime import datetime, timedelta
 random.seed()

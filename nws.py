@@ -2,17 +2,17 @@
 warnings.py -- NWS Alert Module
 Copyright 2011, Michael Yanovich, yanovich.net
 
-http://willie.dftba.net
+http://sopel.chat
 
 This module allows one to query the National Weather Service for active
 watches, warnings, and advisories that are present.
 """
 from __future__ import print_function
-from willie.module import commands, priority
+from sopel.module import commands, priority
 import feedparser
 import re
 import urllib
-import willie.web as web
+import sopel.web as web
 
 states = {
     "alabama": "al",

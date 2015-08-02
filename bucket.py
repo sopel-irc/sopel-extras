@@ -1,6 +1,6 @@
 # coding=utf-8
 """
-bucket.py - willie module to emulate the behavior of #xkcd's Bucket bot
+bucket.py - sopel module to emulate the behavior of #xkcd's Bucket bot
 Copyright 2012, Edward Powell, http://embolalia.net
 Copyright © 2012-2014, Elad Alfassa <elad@fedoraproject.org>
 Licensed under the Eiffel Forum License 2.
@@ -18,7 +18,7 @@ Pull requests for bucket are unlikely to be reviewed.
 Proceed on your own risk.
 ----------
 
-https://github.com/embolalia/willie
+https://github.com/embolalia/sopel
 
 This module is built without using code from the original bucket, but using the same DB table format for factoids.
 
@@ -27,7 +27,7 @@ Things to know if you extend this module:
 All inventory items are managed by the inventory class.
 All runtime information is in the runtime information class
 
-To prevent willie from outputting a "Don't Know" message when referred use the following line:
+To prevent sopel from outputting a "Don't Know" message when referred use the following line:
 
 bucket_runtime_data.inhibit_reply = trigger.group(0)
 
@@ -38,11 +38,11 @@ import MySQLdb
 import re
 from re import sub
 from random import randint, random, seed
-import willie.web as web
+import sopel.web as web
 import os
 from collections import deque
-from willie.tools import Ddict
-from willie.module import *
+from sopel.tools import Ddict
+from sopel.module import *
 import time
 import warnings
 seed()
@@ -52,7 +52,7 @@ def configure(config):
     """
     It is highly recommended that you run the configuration utility on this
     module, as it will handle creating an initializing your database. More
-    information on this module at https://github.com/embolalia/willie-extras/wiki/The-Bucket-Module:-User-and-Bot-Owner-Documentation
+    information on this module at https://github.com/embolalia/sopel-extras/wiki/The-Bucket-Module:-User-and-Bot-Owner-Documentation
 
     | [bucket] | example | purpose |
     | -------- | ------- | ------- |
@@ -60,40 +60,30 @@ def configure(config):
     | db_user | bucket | The username to log into the MySQL database |
     | db_pass | hunter2 | The password for the MySQL database |
     | db_name | bucket | The name of the database you will use |
-    | literal_path | /home/willie/www/bucket | The path in which to store output of the literal command |
-    | literal_baseurl | http://example.net/~willie/bucket | The base URL for literal output |
-    | inv_size | 15 | The maximum amount of items that Willie can keep. |
+    | literal_path | /home/sopel/www/bucket | The path in which to store output of the literal command |
+    | literal_baseurl | http://example.net/~sopel/bucket | The base URL for literal output |
+    | inv_size | 15 | The maximum amount of items that Sopel can keep. |
     | fact_length | 6 | Minimum length of a factoid without being address |
     """
-    if config.option('Configure Bucket (not recommended)', False):
-        config.interactive_add('bucket', 'db_host', "Enter the MySQL hostname", 'localhost')
-        config.interactive_add('bucket', 'db_user', "Enter the MySQL username")
-        config.interactive_add('bucket', 'db_pass', "Enter the user's password")
-        config.interactive_add('bucket', 'db_name', "Enter the name of the database to use")
-        config.interactive_add('bucket', 'literal_path', "Enter the path in which you want to store output of the literal command")
-        config.interactive_add('bucket', 'literal_baseurl', "Base URL for literal output")
-        config.interactive_add('bucket', 'inv_size', "Inventory size", '15')
-        config.interactive_add('bucket', 'fact_length', 'Minimum length of a factoid without being address', '6')
-        if config.option('do you want to generate bucket tables and populate them with some default data?', True):
-            db = MySQLdb.connect(host=config.bucket.db_host,
-                                 user=config.bucket.db_user,
-                                 passwd=config.bucket.db_pass,
-                                 db=config.bucket.db_name)
-            cur = db.cursor()
-            # Create facts table
-            cur.execute("CREATE TABLE IF NOT EXISTS `bucket_facts` (`id` int(10) unsigned NOT NULL AUTO_INCREMENT,`fact` varchar(128) COLLATE utf8_unicode_ci NOT NULL,`tidbit` text COLLATE utf8_unicode_ci NOT NULL,`verb` varchar(16) CHARACTER SET latin1 NOT NULL DEFAULT 'is',`RE` tinyint(1) NOT NULL,`protected` tinyint(1) NOT NULL,`mood` tinyint(3) unsigned DEFAULT NULL,`chance` tinyint(3) unsigned DEFAULT NULL,PRIMARY KEY (`id`),UNIQUE KEY `fact` (`fact`,`tidbit`(200),`verb`),KEY `trigger` (`fact`),KEY `RE` (`RE`)) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;")
-            # Create inventory table
-            cur.execute("CREATE TABLE IF NOT EXISTS `bucket_items` (`id` int(10) unsigned NOT NULL auto_increment,`channel` varchar(64) NOT NULL,`what` varchar(255) NOT NULL,`user` varchar(64) NOT NULL,PRIMARY KEY (`id`),UNIQUE KEY `what` (`what`),KEY `from` (`user`),KEY `where` (`channel`)) ENGINE=MyISAM DEFAULT CHARSET=latin1 ;")
-            # Insert a Don't Know factiod
-            cur.execute('INSERT INTO bucket_facts (`fact`, `tidbit`, `verb`, `RE`, `protected`, `mood`, `chance`) VALUES (%s, %s, %s, %s, %s, %s, %s);', ('Don\'t Know', '++?????++ Out of Cheese Error. Redo From Start.', '<reply>', False, False, None, None))
-            # Insert a pickup full factiod
-            cur.execute('INSERT INTO bucket_facts (`fact`, `tidbit`, `verb`, `RE`, `protected`, `mood`, `chance`) VALUES (%s, %s, %s, %s, %s, %s, %s);', ('pickup full', 'takes $item but drops $giveitem', '<action>', False, False, None, None))
-            # Insert a duplicate item factiod
-            cur.execute('INSERT INTO bucket_facts (`fact`, `tidbit`, `verb`, `RE`, `protected`, `mood`, `chance`) VALUES (%s, %s, %s, %s, %s, %s, %s);', ('duplicate item', 'No thanks, I\'ve already got $item', '<reply>', False, False, None, None))
-            # Insert a take item factiod
-            cur.execute('INSERT INTO bucket_facts (`fact`, `tidbit`, `verb`, `RE`, `protected`, `mood`, `chance`) VALUES (%s, %s, %s, %s, %s, %s, %s);', ('takes item', 'Oh, thanks, I\'ll keep this $item safe', '<reply>', False, False, None, None))
-            db.commit()
-            db.close()
+    db = MySQLdb.connect(host=config.bucket.db_host,
+                            user=config.bucket.db_user,
+                            passwd=config.bucket.db_pass,
+                            db=config.bucket.db_name)
+    cur = db.cursor()
+    # Create facts table
+    cur.execute("CREATE TABLE IF NOT EXISTS `bucket_facts` (`id` int(10) unsigned NOT NULL AUTO_INCREMENT,`fact` varchar(128) COLLATE utf8_unicode_ci NOT NULL,`tidbit` text COLLATE utf8_unicode_ci NOT NULL,`verb` varchar(16) CHARACTER SET latin1 NOT NULL DEFAULT 'is',`RE` tinyint(1) NOT NULL,`protected` tinyint(1) NOT NULL,`mood` tinyint(3) unsigned DEFAULT NULL,`chance` tinyint(3) unsigned DEFAULT NULL,PRIMARY KEY (`id`),UNIQUE KEY `fact` (`fact`,`tidbit`(200),`verb`),KEY `trigger` (`fact`),KEY `RE` (`RE`)) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;")
+    # Create inventory table
+    cur.execute("CREATE TABLE IF NOT EXISTS `bucket_items` (`id` int(10) unsigned NOT NULL auto_increment,`channel` varchar(64) NOT NULL,`what` varchar(255) NOT NULL,`user` varchar(64) NOT NULL,PRIMARY KEY (`id`),UNIQUE KEY `what` (`what`),KEY `from` (`user`),KEY `where` (`channel`)) ENGINE=MyISAM DEFAULT CHARSET=latin1 ;")
+    # Insert a Don't Know factiod
+    cur.execute('INSERT INTO bucket_facts (`fact`, `tidbit`, `verb`, `RE`, `protected`, `mood`, `chance`) VALUES (%s, %s, %s, %s, %s, %s, %s);', ('Don\'t Know', '++?????++ Out of Cheese Error. Redo From Start.', '<reply>', False, False, None, None))
+    # Insert a pickup full factiod
+    cur.execute('INSERT INTO bucket_facts (`fact`, `tidbit`, `verb`, `RE`, `protected`, `mood`, `chance`) VALUES (%s, %s, %s, %s, %s, %s, %s);', ('pickup full', 'takes $item but drops $giveitem', '<action>', False, False, None, None))
+    # Insert a duplicate item factiod
+    cur.execute('INSERT INTO bucket_facts (`fact`, `tidbit`, `verb`, `RE`, `protected`, `mood`, `chance`) VALUES (%s, %s, %s, %s, %s, %s, %s);', ('duplicate item', 'No thanks, I\'ve already got $item', '<reply>', False, False, None, None))
+    # Insert a take item factiod
+    cur.execute('INSERT INTO bucket_facts (`fact`, `tidbit`, `verb`, `RE`, `protected`, `mood`, `chance`) VALUES (%s, %s, %s, %s, %s, %s, %s);', ('takes item', 'Oh, thanks, I\'ll keep this $item safe', '<reply>', False, False, None, None))
+    db.commit()
+    db.close()
 
 
 class Inventory():
@@ -413,11 +403,11 @@ def undo_teach(bot, trigger):
     except KeyError:
         bot.reply('Nothing to undo!')
         return
-    
-    if not trigger.admin or author is trigger.nick: 
+
+    if not trigger.admin or author is trigger.nick:
         was[trigger.sender] = dont_know(bot, trigger)
         return
-    
+
     db = None
     cur = None
     db = connect_db(bot)
@@ -804,16 +794,16 @@ def parse_factoid(result):
     return result[1], result[2], result[3]
 
 
-@willie.module.rule('.*')
-@willie.module.event('JOIN')
+@sopel.module.rule('.*')
+@sopel.module.event('JOIN')
 def handle_join(bot, trigger):
     if trigger.nick == bot.nick:
         return
     _add_friend(bot, trigger)
 
 
-@willie.module.rule('.*')
-@willie.module.event('PART')
+@sopel.module.rule('.*')
+@sopel.module.event('PART')
 def handle_part(bot, trigger):
     if trigger.nick != bot.nick:
         _add_friend(bot, trigger)

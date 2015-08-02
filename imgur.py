@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 """
-imgur.py - Willie imgur Information Module
+imgur.py - Sopel imgur Information Module
 Copyright © 2014, iceTwy, <icetwy@icetwy.re>
 Licensed under the Eiffel Forum License 2.
 """
@@ -15,9 +15,9 @@ if sys.version_info.major < 3:
 else:
     from urllib.request import HTTPError
     from urllib.parse import urlparse
-from willie.config import ConfigurationError
-from willie import web, tools
-from willie.module import rule
+from sopel.config import ConfigurationError
+from sopel import web, tools
+from sopel.module import rule
 
 class ImgurClient(object):
     def __init__(self, client_id):
@@ -63,7 +63,7 @@ def configure(config):
 def setup(bot):
     """
     Tests the validity of the client ID given in the configuration.
-    If it is not, initializes willie's memory callbacks for imgur URLs,
+    If it is not, initializes sopel's memory callbacks for imgur URLs,
     and uses them as the trigger for the link parsing function.
     """
     try:
@@ -74,7 +74,7 @@ def setup(bot):
                                  Are you sure you set it up correctly?')
     imgur_regex = re.compile('(?:https?://)?(?:i\.)?imgur\.com/(.*)$')
     if not bot.memory.contains('url_callbacks'):
-        bot.memory['url_callbacks'] = tools.WillieMemory()
+        bot.memory['url_callbacks'] = tools.SopelMemory()
     bot.memory['url_callbacks'][imgur_regex] = imgur
 
 def album(link_id, bot):

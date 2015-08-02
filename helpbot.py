@@ -3,10 +3,10 @@ help.py - HelpBot Module
 Copyright 2013, Dimitri "Tyrope" Molenaars, TyRope.nl
 Licensed under the Eiffel Forum License 2.
 
-http://willie.dftba.net/
+http://sopel.chat/
 """
 from __future__ import print_function
-from willie.module import rule, event, commands
+from sopel.module import rule, event, commands
 from collections import deque
 
 helpees = deque()
@@ -32,7 +32,7 @@ def addNewHelpee(bot, trigger):
     if trigger.admin or trigger.nick == bot.nick or trigger.sender != bot.config.helpbot.channel:
         return
     if trigger.isop:
-        willie.say('An operator has joined the help channel: ' + trigger.nick)
+        sopel.say('An operator has joined the help channel: ' + trigger.nick)
         return
     helpees.append({'nick': trigger.nick, 'request': None, 'active': False, 'skipped': False})
     try:

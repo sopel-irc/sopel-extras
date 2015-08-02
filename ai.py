@@ -3,26 +3,11 @@ ai.py - Artificial Intelligence Module
 Copyright 2009-2011, Michael Yanovich, yanovich.net
 Licensed under the Eiffel Forum License 2.
 
-http://willie.dftba.net
+http://sopel.chat
 """
-from willie.module import rule, priority, rate
+from sopel.module import rule, priority, rate
 import random
 import time
-
-
-def configure(config):
-    """
-    | [ai] | example | purpose |
-    | ---------- | ------- | ------- |
-    | frequency | 3 | How often Willie participates in the conversation (0-10) |
-    """
-    if config.option('Configure ai module', False):
-            if not config.has_section('ai'):
-                    config.add_section('ai')
-            config.interactive_add('ai', 'frequency', 
-                                   "How often do you want Willie to participate in the conversation? (0-10)",
-                                   3)
-            config.save()
 
 
 def setup(bot):
@@ -47,7 +32,7 @@ def goodbye(bot, trigger):
     bot.say(byemsg + ' ' + trigger.nick + punctuation)
 
 
-@rule('(?i).*(thank).*(you).*(willie|$nickname).*$')
+@rule('(?i).*(thank).*(you).*(sopel|$nickname).*$')
 @rate(30)
 @priority('high')
 def ty(bot, trigger):
@@ -65,13 +50,13 @@ def ty2(bot, trigger):
     ty(bot, trigger)
 
 
-@rule('(?i).*(thanks).*(willie|$nickname).*')
+@rule('(?i).*(thanks).*(sopel|$nickname).*')
 @rate(40)
 def ty4(bot, trigger):
     ty(bot, trigger)
 
 
-@rule('(willie|$nickname)\:\s+(yes|no)$')
+@rule('(sopel|$nickname)\:\s+(yes|no)$')
 @rate(15)
 def yesno(bot, trigger):
     rand = random.uniform(0, 5)
@@ -85,7 +70,7 @@ def yesno(bot, trigger):
         bot.reply("yes")
 
 
-@rule('(?i)($nickname|willie)\:\s+(ping)\s*')
+@rule('(?i)($nickname|sopel)\:\s+(ping)\s*')
 @rate(30)
 def ping_reply(bot, trigger):
     text = trigger.group().split(":")
@@ -94,7 +79,7 @@ def ping_reply(bot, trigger):
         bot.reply("PONG")
 
 
-@rule('(?i)((willie|$nickname)\[,:]\s*i.*love|i.*love.*(willie|$nickname).*)')
+@rule('(?i)((sopel|$nickname)\[,:]\s*i.*love|i.*love.*(sopel|$nickname).*)')
 @rate(30)
 def love(bot, trigger):
     bot.reply("I love you too.")

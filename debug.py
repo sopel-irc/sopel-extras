@@ -1,13 +1,13 @@
 # coding=utf-8
 """
-debug.py - Willie Debugging Module
+debug.py - Sopel Debugging Module
 Copyright 2013, Dimitri "Tyrope" Molenaars, Tyrope.nl
 Licensed under the Eiffel Forum License 2.
 
-http://willie.dftba.net
+http://sopel.chat
 """
 
-from willie.module import commands, example
+from sopel.module import commands, example
 
 @commands('privs')
 @example('.privs', '.privs #channel')
@@ -34,7 +34,7 @@ def admins(bot, trigger):
 def debug_print(bot, trigger):
     """Calls version, admins and privileges prints in sequence."""
     try:
-        willie.modules.version.version(bot, trigger)
+        sopel.modules.version.version(bot, trigger)
     except Exception as e:
         bot.say('An error occured trying to get the current version.')
     admins(bot, trigger)
@@ -43,6 +43,6 @@ def debug_print(bot, trigger):
 @commands('raiseException', 'causeProblems', 'giveError')
 @example('.raiseException')
 def cause_problems(bot, trigger):
-    """This deliberately causes willie to raise exceptional problems."""
+    """This deliberately causes sopel to raise exceptional problems."""
     raise Exception("Problems were caused on command.")
 

@@ -4,7 +4,7 @@ Copyright 2013, Syfaro Warraw http://syfaro.net
 Licensed under the Eiffel Forum License 2.
 """
 
-from willie.module import commands, example
+from sopel.module import commands, example
 
 
 @commands('mm', 'multimessage')
