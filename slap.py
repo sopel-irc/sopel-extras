@@ -22,12 +22,12 @@ def slap(sopel, trigger):
     if text[1] == 'me' or text[1] == 'myself':
         text[1] = trigger.nick
     if text[1] == sopel.nick:
-        if (trigger.nick not in sopel.config.core.admins):
+        if (not trigger.admin):
             text[1] = trigger.nick
         else:
             text[1] = 'itself'
     if text[1] in sopel.config.core.admins:
-        if (trigger.nick not in sopel.config.core.admins):
+        if (not trigger.admin):
             text[1] = trigger.nick
     verb = random.choice(('slaps', 'kicks', 'destroys', 'annihilates', 'punches', 'roundhouse kicks', 'pwns', 'owns'))
     sopel.write(['PRIVMSG', trigger.sender, ' :\x01ACTION', verb, text[1], '\x01'])
