@@ -87,7 +87,7 @@ def album(link_id, bot):
     api_response = client.resource('album', link_id)
     album = api_response['data']
     return bot.say('[imgur] [{0} - an album with {1} images and ' \
-                   '{2} views]'.format(album['title'],
+                   '{2} views]'.format(album['title'].encode('utf-8'),
                                        str(album['images_count']), \
                                        str(album['views'])))
 
@@ -102,19 +102,19 @@ def gallery(link_id, bot):
     gallery = api_response['data']
     if gallery['is_album']:
         return bot.say('[imgur] [{0} - a gallery album with {1} views ' \
-                       '({2} ups and {3} downs)]'.format(gallery['title'], \
+                       '({2} ups and {3} downs)]'.format(gallery['title'].encode('utf-8'), \
                                                          str(gallery['views']), \
                                                          str(gallery['ups']), \
                                                          str(gallery['downs'])))
     if gallery['animated'] == True:
         return bot.say('[imgur] [{0} - a gallery gif with {1} views ' \
-                       '({2} ups and {3} downs)]'.format(gallery['title'], \
+                       '({2} ups and {3} downs)]'.format(gallery['title'].encode('utf-8'), \
                                                          str(gallery['views']), \
                                                          str(gallery['ups']), \
                                                          str(gallery['downs'])))
     else:
         return bot.say('[imgur] [{0} - a gallery image with {1} views ' \
-                       '({2} ups and {3} downs)]'.format(gallery['title'], \
+                       '({2} ups and {3} downs)]'.format(gallery['title'].encode('utf-8'), \
                                                          str(gallery['views']),
                                                          str(gallery['ups']),
                                                          str(gallery['downs'])))
@@ -154,10 +154,10 @@ def image(link_id, bot):
     if not img['title'] and not img['description']:
         title = 'untitled'
     if img['animated']:
-        return bot.say('[imgur] [{0} - a gif with {1} views]'.format(title, \
+        return bot.say('[imgur] [{0} - a gif with {1} views]'.format(title.encode('utf-8'), \
                                                                      str(img['views'])))
     else:
-        return bot.say('[imgur] [{0} - an image with {1} views]'.format(title, \
+        return bot.say('[imgur] [{0} - an image with {1} views]'.format(title.encode('utf-8'), \
                                                                         str(img['views'])))
 
 @rule('(?:https?://)?(?:i\.)?imgur\.com/(.*)$')
