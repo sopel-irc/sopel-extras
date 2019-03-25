@@ -76,30 +76,40 @@ def gettweet(sopel, trigger, found_match=None):
         api = tweepy.API(auth)
 
         if found_match:
-            status = api.get_status(found_match.group(2))
+            status = api.get_status(found_match.group(2), tweet_mode='extended')
         else:
             parts = trigger.group(2).split()
             if parts[0].isdigit():
-                status = api.get_status(parts[0])
+                status = api.get_status(parts[0], tweet_mode='extended')
             else:
                 twituser = parts[0]
                 twituser = str(twituser)
                 statusnum = 0
                 if len(parts) > 1 and parts[1].isdigit():
                     statusnum = int(parts[1]) - 1
-                status = api.user_timeline(twituser)[statusnum]
+                status = api.user_timeline(twituser, tweet_mode='extended')[statusnum]
         twituser = '@' + status.user.screen_name
+
+        # 280-char BS
+        try:
+            text = status.full_text
+        except:
+            try:
+                text = status.text
+            except:
+                return sopel.reply("I couldn't find the tweet text. :/")
+
         try:
             for media in status.entities['media']:
-                status.text = status.text.replace(media['url'], media['media_url'])
+                text = text.replace(media['url'], media['media_url'])
         except KeyError:
             pass
         try:
             for url in status.entities['urls']:
-                status.text = status.text.replace(url['url'], url['expanded_url'])
+                text = text.replace(url['url'], url['expanded_url'])
         except KeyError:
             pass
-        sopel.say(twituser + ": " + str(status.text) + ' <' + tweet_url(status) + '>')
+        sopel.say(twituser + ": " + str(text) + ' <' + tweet_url(status) + '>')
     except:
         sopel.reply("You have inputted an invalid user.")
 gettweet.commands = ['twit']
