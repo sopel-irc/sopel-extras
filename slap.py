@@ -8,6 +8,7 @@ http://sopel.chat
 import random
 import re
 from sopel.module import commands
+from sopel.tools import Identifier
 
 
 @commands('slap', 'slaps')
@@ -21,6 +22,12 @@ def slap(sopel, trigger):
         return
     if text[1] == 'me' or text[1] == 'myself':
         text[1] = trigger.nick
+    try:
+        if Identifier(text[1]) not in sopel.privileges[trigger.sender.lower()]:
+            sopel.say("You can't slap someone who isn't here!")
+            return
+    except KeyError:
+        pass
     if text[1] == sopel.nick:
         if (trigger.nick not in sopel.config.admins):
             text[1] = trigger.nick
