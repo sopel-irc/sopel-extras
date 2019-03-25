@@ -17,6 +17,14 @@ import sys
 if sys.version_info.major < 3:
     str = unicode
 
+try:
+    import html
+except ImportError:
+    import HTMLParser
+    html = HTMLParser.HTMLParser()
+unescape = html.unescape
+
+
 def configure(config):
     """
     These values are all found by signing up your bot at
@@ -81,7 +89,7 @@ def gettweet(sopel, trigger, found_match=None):
                     statusnum = int(parts[1]) - 1
                 status = api.user_timeline(twituser)[statusnum]
         twituser = '@' + status.user.screen_name
-        sopel.say(twituser + ": " + str(status.text) + ' <' + tweet_url(status) + '>')
+        sopel.say(twituser + ": " + unescape(str(status.text)) + ' <' + tweet_url(status) + '>')
     except:
         sopel.reply("You have inputted an invalid user.")
 gettweet.commands = ['twit']
@@ -107,7 +115,7 @@ def f_info(sopel, trigger):
         favourites = info.favourites_count
         followers = format_thousands(info.followers_count)
         location = info.location
-        description = info.description
+        description = unescape(info.description)
         sopel.reply("@" + str(twituser) + ": " + str(name) + ". " + "ID: " + str(id) + ". Friend Count: " + friendcount + ". Followers: " + followers + ". Favourites: " + str(favourites) + ". Location: " + str(location) + ". Description: " + str(description))
     except:
         sopel.reply("You have inputted an invalid user.")
