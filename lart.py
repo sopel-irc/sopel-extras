@@ -4,11 +4,15 @@ lart.py - Luser Attitude Readjustment Tool
 Copyright 2014, Matteo Marchesotti https://www.sfwd.ws
 Licensed under the Eiffel Forum License 2.
 
-http://willie.dfbta.net
+https://sopel.chat
 """
-import willie
+
 import random
-@willie.module.commands('lart')
+
+from sopel import commands
+
+
+@commands('lart')
 def lart(bot, trigger):
     """LART (Luser Attitude Readjustment Tool). Throws a random insult to a luser! Usage: .lart <luser>"""
     try:
@@ -34,7 +38,7 @@ def lart(bot, trigger):
 
     bot.say(message)
 
-@willie.module.commands('addlart')
+@commands('addlart')
 def addlart(bot, trigger):
     """Adds another insult to bot's collection with: .addlart <insult>. 'insult' _must_ contain 'LUSER' which will be substituted with the name of the luser."""
     try:
