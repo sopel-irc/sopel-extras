@@ -192,7 +192,7 @@ def imgur(bot, trigger):
     It is more fool-proof to only demand gallery data from the imgur API
     if we get a link that is of the form imgur.com/gallery/id, because
     imgur IDs are not unique (see above) and we can trigger an error if
-    we request inexistant gallery data.
+    we request inexistent gallery data.
     """
 
     #urlparse does not support URLs without a scheme.

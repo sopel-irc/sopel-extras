@@ -36,7 +36,7 @@ def debug_print(bot, trigger):
     try:
         sopel.modules.version.version(bot, trigger)
     except Exception as e:
-        bot.say('An error occured trying to get the current version.')
+        bot.say('An error occurred trying to get the current version.')
     admins(bot, trigger)
     privileges(bot, trigger)
 
