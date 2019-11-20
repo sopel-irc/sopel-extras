@@ -172,12 +172,12 @@ def campaign(bot, trigger):
     if campaign in campaigns:
         if command == 'del':
             campaigns.remove(campaign)
-            bot.say("Campagin \"%s\" has been removed!" % campaign)
+            bot.say("Campaign \"%s\" has been removed!" % campaign)
         else:  # command == 'add'
             bot.say("Campaign \"%s\" already exists!" % campaign)
     else:
         if command == 'del':
-            bot.say("Campagin \"%s\" doesn't exist!" % campaign)
+            bot.say("Campaign \"%s\" doesn't exist!" % campaign)
         else:  # command == 'add'
             campaigns.append(campaign)
     if not command == 'list':
